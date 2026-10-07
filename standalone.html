@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Autofeud — Guess the search</title>
+  <meta name="description" content="Guess how the internet finishes the search. Classic, Daily Challenge, Versus AI and Speed Rush. Free, no sign-up, works offline.">
+  <meta name="theme-color" content="#7c5cff">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%237c5cff'/%3E%3Ccircle cx='28' cy='28' r='13' fill='none' stroke='white' stroke-width='6'/%3E%3Cpath d='M38 38l12 12' stroke='%23ff8a1f' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
+  <!-- Only external host: jsDelivr (the font falls back to system fonts if blocked) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/outfit@5/500.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/outfit@5/700.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/outfit@5/800.css" media="print" onload="this.media='all'">
+  <style>
+/* Autofeud — styles */
+:root {
+  --font: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --bg: #f4f5fb; --bg2: #ffffff; --ink: #17182b; --muted: #6b6f8a; --line: #e4e6f2; --chip: #eef0f8;
+  --card: #ffffff; --shadow: 0 1px 2px rgba(23, 24, 43, .06), 0 8px 28px rgba(23, 24, 43, .08);
+  --brand: #7c5cff; --brand2: #ff4f9a; --brand3: #ff8a1f; --ok: #16b47a; --bad: #ff4757; --gold: #f5b400;
+  --slot: #f1f2f9; --slot-ink: #9a9db8; --slot-found: linear-gradient(135deg, #7c5cff, #b04dff); --slot-ai: linear-gradient(135deg, #ff7a45, #ff4f9a); --slot-miss: #e9ebf5;
+  --focus: 0 0 0 4px rgba(124, 92, 255, .25);
+  --radius: 18px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e0f1d; --bg2: #16182b; --ink: #f2f3ff; --muted: #9da1c2; --line: #272a44; --chip: #20233b;
+    --card: #17192d; --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
+    --slot: #1e2138; --slot-ink: #6e7296; --slot-miss: #22253d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e0f1d; --bg2: #16182b; --ink: #f2f3ff; --muted: #9da1c2; --line: #272a44; --chip: #20233b;
+  --card: #17192d; --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
+  --slot: #1e2138; --slot-ink: #6e7296; --slot-miss: #22253d; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--font); background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased;
+  overflow-x: hidden; -webkit-tap-highlight-color: transparent;
+}
+body::before {
+  content: ''; position: fixed; inset: -20%; z-index: -1; pointer-events: none; opacity: .55;
+  background: radial-gradient(40% 35% at 15% 10%, rgba(124, 92, 255, .18), transparent 70%),
+    radial-gradient(35% 30% at 90% 15%, rgba(255, 79, 154, .14), transparent 70%),
+    radial-gradient(40% 35% at 70% 95%, rgba(255, 138, 31, .12), transparent 70%);
+}
+button, input { font-family: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: none; box-shadow: var(--focus); }
+.hidden { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- buttons ---------- */
+.btn {
+  border: 0; border-radius: 14px; padding: 12px 20px; font-size: 16px; font-weight: 700; letter-spacing: .01em;
+  background: var(--chip); color: var(--ink); transition: transform .12s, box-shadow .12s, background .2s, opacity .2s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .45; cursor: default; transform: none; }
+.btn.primary { background: linear-gradient(135deg, var(--brand), #9b4dff); color: #fff; box-shadow: 0 6px 18px rgba(124, 92, 255, .35); }
+.btn.hot { background: linear-gradient(135deg, var(--brand2), var(--brand3)); color: #fff; box-shadow: 0 6px 18px rgba(255, 79, 154, .3); }
+.btn.big { font-size: 19px; padding: 15px 28px; border-radius: 16px; }
+.btn.ghost { background: transparent; border: 2px solid var(--line); }
+.icon-btn { width: 44px; height: 44px; border-radius: 14px; border: 0; background: var(--card); box-shadow: var(--shadow); font-size: 19px; display: grid; place-items: center; transition: transform .12s; }
+.icon-btn:hover { transform: translateY(-1px); }
+
+/* ---------- top bar ---------- */
+.topbar { display: flex; align-items: center; gap: 10px; padding: max(12px, env(safe-area-inset-top)) 16px 12px; max-width: 1080px; margin: 0 auto; }
+.topbar .grow { flex: 1; }
+.profile { display: flex; align-items: center; gap: 10px; background: var(--card); box-shadow: var(--shadow); border: 0; border-radius: 16px; padding: 6px 14px 6px 6px; text-align: left; }
+.avatar { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; color: #fff; font-weight: 800; background: linear-gradient(135deg, var(--brand), var(--brand2)); }
+.profile b { display: block; font-size: 14px; line-height: 1.1; }
+.profile small { color: var(--muted); font-size: 12px; font-weight: 600; }
+.xpbar { height: 5px; width: 110px; border-radius: 99px; background: var(--chip); overflow: hidden; margin-top: 3px; }
+.xpbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--brand), var(--brand2)); border-radius: 99px; transition: width .8s ease; }
+
+/* ---------- logo ---------- */
+.logo { font-weight: 800; letter-spacing: -.04em; line-height: 1; margin: 0; user-select: none; }
+.logo span:nth-child(1) { color: #7c5cff; } .logo span:nth-child(2) { color: #ff4f9a; } .logo span:nth-child(3) { color: #ff8a1f; }
+.logo span:nth-child(4) { color: #f5b400; } .logo span:nth-child(5) { color: #16b47a; } .logo span:nth-child(6) { color: #2f8cff; }
+.logo span:nth-child(7) { color: #ff4f9a; } .logo span:nth-child(8) { color: #7c5cff; }
+.logo.huge { font-size: clamp(54px, 13vw, 104px); }
+.logo.small { font-size: 26px; }
+
+/* ---------- home ---------- */
+.screen { max-width: 1080px; margin: 0 auto; padding: 0 16px 32px; }
+.hero { text-align: center; padding: clamp(8px, 4vh, 40px) 0 10px; }
+.tagline { margin: 10px 0 22px; color: var(--muted); font-size: clamp(16px, 2.4vw, 19px); font-weight: 500; }
+.demo-search { max-width: 620px; margin: 0 auto; display: flex; align-items: center; gap: 12px; background: var(--card); box-shadow: var(--shadow); border-radius: 999px; padding: 14px 22px; font-size: 18px; text-align: left; border: 1px solid var(--line); }
+.demo-search .q { flex: 1; min-height: 1.3em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.demo-search .q b { font-weight: 700; }
+.caret { display: inline-block; width: 2px; height: 1.1em; background: var(--brand); vertical-align: -3px; margin-left: 1px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.demo-drop { max-width: 620px; margin: 6px auto 0; text-align: left; color: var(--muted); font-size: 15px; min-height: 104px; }
+.demo-drop div { padding: 5px 22px 5px 56px; opacity: 0; transform: translateY(-4px); transition: all .25s; }
+.demo-drop div.on { opacity: 1; transform: none; }
+.demo-drop div b { color: var(--ink); }
+
+.section-title { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px; }
+.modes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.mode {
+  position: relative; text-align: left; border: 2px solid transparent; border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow);
+  padding: 16px; transition: transform .15s, border-color .15s; min-height: 132px; display: flex; flex-direction: column; gap: 4px;
+}
+.mode:hover { transform: translateY(-2px); }
+.mode.sel { border-color: var(--brand); }
+.mode .ic { font-size: 28px; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; margin-bottom: 6px; }
+.mode b { font-size: 18px; }
+.mode span { color: var(--muted); font-size: 14px; line-height: 1.35; }
+.mode .badge { position: absolute; top: 12px; right: 12px; font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 99px; background: var(--chip); color: var(--muted); }
+.mode .badge.done { background: rgba(22, 180, 122, .15); color: var(--ok); }
+.mode .badge.new { background: rgba(255, 79, 154, .15); color: var(--brand2); }
+
+.setup { margin-top: 14px; background: var(--card); box-shadow: var(--shadow); border-radius: var(--radius); padding: 16px; display: grid; gap: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 2px solid transparent; background: var(--chip); border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: 15px; display: inline-flex; gap: 6px; align-items: center; transition: background .15s, border-color .15s; }
+.chip.sel { border-color: var(--brand); background: rgba(124, 92, 255, .12); }
+.setup-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+.setup-row .lbl { font-weight: 800; font-size: 14px; color: var(--muted); }
+#start { min-width: 200px; }
+
+/* ---------- game ---------- */
+.gamebar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; }
+.round-info { text-align: center; }
+.round-info .cat { display: inline-flex; gap: 6px; align-items: center; font-weight: 800; font-size: 14px; padding: 4px 12px; border-radius: 99px; color: #fff; }
+.round-info .rn { color: var(--muted); font-weight: 700; font-size: 14px; margin-top: 4px; }
+.scorebox { text-align: right; }
+.scorebox b { font-size: 28px; font-variant-numeric: tabular-nums; display: block; line-height: 1; }
+.scorebox small { color: var(--muted); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+
+.versus { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-top: 12px; }
+.vs-card { background: var(--card); box-shadow: var(--shadow); border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; border: 2px solid transparent; transition: border-color .2s, transform .2s; }
+.vs-card.turn { border-color: var(--brand); transform: translateY(-2px); }
+.vs-card.ai.turn { border-color: var(--brand2); }
+.vs-card .avatar { flex: none; }
+.vs-card .who { flex: 1; min-width: 0; }
+.vs-card .who b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vs-card .pts { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.vs-card .x { font-size: 12px; letter-spacing: 2px; color: var(--bad); min-height: 14px; }
+.vs-mid { font-weight: 800; color: var(--muted); }
+.ai-bubble { font-size: 13px; color: var(--muted); font-weight: 600; min-height: 16px; }
+
+.search {
+  margin: 16px auto 0; max-width: 760px; display: flex; align-items: center; gap: 10px; background: var(--card); border: 2px solid var(--line);
+  border-radius: 999px; padding: 6px 6px 6px 20px; box-shadow: var(--shadow); transition: border-color .2s, box-shadow .2s;
+}
+.search:focus-within { border-color: var(--brand); box-shadow: var(--shadow), var(--focus); }
+.search .mag { font-size: 18px; opacity: .6; }
+.search label { display: flex; align-items: center; flex: 1; min-width: 0; gap: 6px; font-size: 19px; cursor: text; }
+.search .qtext { font-weight: 700; white-space: nowrap; flex: none; max-width: 60%; overflow: hidden; text-overflow: ellipsis; }
+.search input { flex: 1; min-width: 60px; border: 0; outline: 0; background: transparent; font-size: 19px; padding: 10px 0; }
+.search input::placeholder { color: var(--slot-ink); }
+.search .btn { border-radius: 999px; padding: 12px 22px; }
+.search.shake { animation: shake .4s; border-color: var(--bad); }
+.search.good { border-color: var(--ok); }
+@keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+
+.status { display: flex; justify-content: center; align-items: center; gap: 16px; margin: 12px 0 4px; min-height: 34px; flex-wrap: wrap; }
+.strikes { display: flex; gap: 8px; }
+.strike { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; font-weight: 900; font-size: 17px; background: var(--chip); color: var(--slot-ink); transition: all .25s; }
+.strike.on { background: var(--bad); color: #fff; transform: scale(1.1); box-shadow: 0 4px 12px rgba(255, 71, 87, .4); }
+.timer { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; padding: 4px 14px; border-radius: 12px; background: var(--chip); }
+.timer.low { background: var(--bad); color: #fff; animation: pulse 1s infinite; }
+@keyframes pulse { 50% { transform: scale(1.06); } }
+.feedback { font-weight: 700; color: var(--muted); font-size: 15px; min-height: 22px; text-align: center; transition: color .2s; }
+.feedback.bad { color: var(--bad); } .feedback.ok { color: var(--ok); }
+
+.board { max-width: 900px; margin: 10px auto 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: column; grid-template-rows: repeat(5, auto); gap: 10px 14px; perspective: 900px; }
+.slot { position: relative; height: 58px; transform-style: preserve-3d; transition: transform .55s cubic-bezier(.3, 1.4, .5, 1); }
+.slot .face { position: absolute; inset: 0; border-radius: 14px; display: flex; align-items: center; gap: 12px; padding: 0 16px 0 10px; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.slot .front { background: var(--slot); color: var(--slot-ink); }
+.slot .back { background: var(--slot-found); color: #fff; transform: rotateX(180deg); box-shadow: 0 6px 18px rgba(124, 92, 255, .3); }
+.slot.flip { transform: rotateX(180deg); }
+.slot.by-ai .back { background: var(--slot-ai); box-shadow: 0 6px 18px rgba(255, 79, 154, .3); }
+.slot.missed .back { background: var(--slot-miss); color: var(--muted); box-shadow: none; }
+.slot .n { width: 34px; height: 34px; flex: none; border-radius: 10px; display: grid; place-items: center; font-weight: 800; font-size: 15px; background: rgba(127, 127, 160, .14); }
+.slot .back .n { background: rgba(255, 255, 255, .22); }
+.slot.missed .back .n { background: rgba(127, 127, 160, .14); }
+.slot .t { flex: 1; min-width: 0; font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot .t i { font-style: normal; font-weight: 500; opacity: .75; }
+.slot .p { font-weight: 800; font-variant-numeric: tabular-nums; font-size: 15px; opacity: .95; }
+.slot .front .p { opacity: .7; }
+.slot .hint { letter-spacing: .25em; font-weight: 800; color: var(--brand); }
+.slot.pop { animation: slotpop .5s; }
+@keyframes slotpop { 40% { filter: brightness(1.25); } }
+
+.actions { display: flex; justify-content: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.round-banner {
+  max-width: 760px; margin: 16px auto 0; background: var(--card); box-shadow: var(--shadow); border-radius: var(--radius); padding: 14px 18px;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: space-between; animation: rise .35s ease-out;
+}
+.round-banner b { font-size: 18px; }
+.round-banner span { color: var(--muted); font-weight: 600; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+
+.floater { position: fixed; z-index: 60; pointer-events: none; font-weight: 800; font-size: 22px; color: var(--ok); text-shadow: 0 2px 10px rgba(0, 0, 0, .15); animation: floatup 1.1s ease-out forwards; }
+@keyframes floatup { from { opacity: 1; transform: translate(-50%, 0) scale(.9); } to { opacity: 0; transform: translate(-50%, -60px) scale(1.15); } }
+
+/* ---------- modal ---------- */
+.modal { position: fixed; inset: 0; z-index: 50; background: rgba(10, 11, 25, .55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; padding: 16px; overflow-y: auto; animation: fade .2s; }
+@keyframes fade { from { opacity: 0; } }
+.sheet { margin: auto; width: min(560px, 100%); background: var(--card); border-radius: 22px; box-shadow: 0 30px 80px rgba(0, 0, 0, .35); padding: 22px; position: relative; animation: rise .3s ease-out; }
+.sheet h2 { margin: 0 0 12px; font-size: 26px; letter-spacing: -.02em; }
+.sheet h3 { margin: 18px 0 8px; font-size: 16px; }
+.sheet p, .sheet li { color: var(--muted); line-height: 1.5; }
+.sheet .close { position: absolute; top: 14px; right: 14px; width: 38px; height: 38px; border-radius: 12px; border: 0; background: var(--chip); font-size: 16px; }
+.big-score { font-size: 54px; font-weight: 800; letter-spacing: -.03em; line-height: 1; background: linear-gradient(135deg, var(--brand), var(--brand2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.result-head { text-align: center; }
+.result-head .sub { color: var(--muted); font-weight: 700; margin-top: 6px; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
+.kpi { background: var(--chip); border-radius: 14px; padding: 10px 6px; text-align: center; }
+.kpi b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+.kpi span { font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.levelup { display: flex; align-items: center; gap: 12px; background: var(--chip); border-radius: 14px; padding: 10px 14px; }
+.levelup .xpbar { flex: 1; width: auto; height: 8px; }
+.levelup b { white-space: nowrap; }
+.ach-new { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.ach-new div { background: rgba(245, 180, 0, .14); border-radius: 12px; padding: 8px 12px; font-weight: 700; }
+.row-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+.round-list { display: grid; gap: 6px; margin-top: 8px; }
+.round-list div { display: flex; justify-content: space-between; gap: 10px; background: var(--chip); border-radius: 12px; padding: 8px 12px; font-weight: 600; font-size: 14px; }
+.round-list div span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ach-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.ach { display: flex; gap: 10px; align-items: center; background: var(--chip); border-radius: 14px; padding: 10px; opacity: .5; filter: grayscale(1); }
+.ach.got { opacity: 1; filter: none; }
+.ach .i { font-size: 24px; }
+.ach b { display: block; font-size: 14px; }
+.ach small { color: var(--muted); font-size: 12px; line-height: 1.3; display: block; }
+.set { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-weight: 700; }
+.set:last-of-type { border-bottom: 0; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 12px; padding: 3px; gap: 3px; }
+.seg button { border: 0; background: transparent; padding: 7px 12px; border-radius: 9px; font-weight: 700; font-size: 14px; }
+.seg button.sel { background: var(--card); box-shadow: 0 1px 4px rgba(0, 0, 0, .12); }
+.switch { width: 48px; height: 28px; border-radius: 99px; background: var(--line); border: 0; position: relative; transition: background .2s; flex: none; }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .2s; }
+.switch.on { background: var(--brand); }
+.switch.on::after { transform: translateX(20px); }
+.text-input { width: 100%; border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 16px; background: var(--bg2); outline: 0; }
+.text-input:focus { border-color: var(--brand); }
+
+#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 70; width: 100%; height: 100%; }
+.toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 80; background: var(--ink); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; box-shadow: 0 10px 30px rgba(0, 0, 0, .25); animation: rise .25s; max-width: calc(100% - 32px); }
+.foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 28px; font-weight: 500; }
+
+@media (max-width: 860px) { .modes { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) {
+  .board { grid-template-columns: 1fr; grid-auto-flow: row; grid-template-rows: none; gap: 8px; }
+  .slot { height: 50px; }
+  .slot .t { font-size: 16px; }
+  .search { padding-left: 14px; }
+  .search label, .search input { font-size: 17px; }
+  .search .qtext { max-width: 55%; }
+  .search .btn { padding: 11px 14px; }
+  .search .btn .lbl { display: none; }
+  .search .mag { display: none; }
+  .scorebox b { font-size: 22px; }
+  .mode { min-height: 0; padding: 12px; }
+  .mode .ic { width: 38px; height: 38px; font-size: 22px; }
+  .mode span { font-size: 13px; }
+  .profile .xpbar { width: 70px; }
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .ach-grid { grid-template-columns: 1fr; }
+  .big-score { font-size: 44px; }
+  .vs-card { padding: 8px 10px; gap: 8px; }
+  .vs-card .pts { font-size: 18px; }
+  #start { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+:root[data-motion="off"] *, :root[data-motion="off"] *::before, :root[data-motion="off"] *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+.search input:focus-visible { box-shadow: none; }
+@media (max-width: 600px) {
+  .topbar { gap: 8px; padding-left: 12px; padding-right: 12px; }
+  .icon-btn { width: 38px; height: 38px; font-size: 16px; border-radius: 12px; }
+  #mini-logo { display: none; }
+  .profile { padding: 4px 10px 4px 4px; min-width: 0; }
+  .profile b { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .profile small { white-space: nowrap; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <h1 id="mini-logo" class="logo small hidden" aria-label="Autofeud"><span>a</span><span>u</span><span>t</span><span>o</span><span>f</span><span>e</span><span>u</span><span>d</span></h1>
+    <button id="profile" class="profile" aria-label="Your profile">
+      <span id="avatar" class="avatar">P</span>
+      <span><b id="p-name">Player</b><small id="p-level">Lv 1 · Newbie</small><span class="xpbar"><i id="p-xp" style="width:0"></i></span></span>
+    </button>
+    <div class="grow"></div>
+    <button class="icon-btn" data-open="stats" aria-label="Stats and achievements" title="Stats & achievements">🏆</button>
+    <button class="icon-btn" data-open="help" aria-label="How to play" title="How to play">❔</button>
+    <button class="icon-btn" data-open="settings" aria-label="Settings" title="Settings">⚙️</button>
+  </header>
+
+  <!-- ============ HOME ============ -->
+  <main id="home" class="screen">
+    <section class="hero">
+      <h1 class="logo huge" aria-label="Autofeud"><span>a</span><span>u</span><span>t</span><span>o</span><span>f</span><span>e</span><span>u</span><span>d</span></h1>
+      <p class="tagline">How does the internet finish the search? Guess the top 10.</p>
+      <div class="demo-search" aria-hidden="true"><span>🔍</span><span class="q" id="demo-q"></span></div>
+      <div class="demo-drop" id="demo-drop" aria-hidden="true"></div>
+    </section>
+
+    <div class="section-title">Choose a mode</div>
+    <div class="modes" id="modes">
+      <button class="mode sel" data-mode="classic"><span class="ic" style="background:rgba(124,92,255,.14)">🔎</span><b>Classic</b><span>5 searches, 3 strikes each. Pick a category and go.</span></button>
+      <button class="mode" data-mode="daily"><span class="badge" id="daily-badge">NEW</span><span class="ic" style="background:rgba(255,138,31,.14)">📅</span><b>Daily Challenge</b><span>Same 5 searches for everyone today. Share your score.</span></button>
+      <button class="mode" data-mode="versus"><span class="ic" style="background:rgba(255,79,154,.14)">🤖</span><b>Versus AI</b><span>Take turns against a humanlike AI rival. Best of 5.</span></button>
+      <button class="mode" data-mode="speed"><span class="ic" style="background:rgba(22,180,122,.14)">⚡</span><b>Speed Rush</b><span>60 seconds. No strikes. Every hit adds time.</span></button>
+    </div>
+
+    <section class="setup" id="setup">
+      <div id="cat-wrap">
+        <div class="setup-row"><span class="lbl">Category</span></div>
+        <div class="chips" id="cats" style="margin-top:8px"></div>
+      </div>
+      <div id="ai-wrap" class="setup-row hidden">
+        <span class="lbl">AI rival</span>
+        <div class="seg" id="ai-levels"></div>
+      </div>
+      <div class="setup-row">
+        <span id="setup-note" class="lbl"></span>
+        <button id="start" class="btn primary big">Play ▸</button>
+      </div>
+    </section>
+    <p class="foot">Free · No sign-up · Works offline · All searches are written for the game and school friendly</p>
+  </main>
+
+  <!-- ============ GAME ============ -->
+  <main id="game" class="screen hidden">
+    <div class="gamebar">
+      <button id="quit" class="icon-btn" aria-label="Quit to menu" title="Quit">✕</button>
+      <div class="round-info"><span class="cat" id="g-cat"></span><div class="rn" id="g-round"></div></div>
+      <div class="scorebox" id="g-scorebox"><small>Score</small><b id="g-score">0</b></div>
+    </div>
+
+    <div class="versus hidden" id="versus">
+      <div class="vs-card" id="vs-me"><span class="avatar" id="vs-me-av">P</span><span class="who"><b id="vs-me-name">You</b><span class="x" id="vs-me-x"></span></span><span class="pts" id="vs-me-pts">0</span></div>
+      <span class="vs-mid">VS</span>
+      <div class="vs-card ai" id="vs-ai"><span class="avatar" id="vs-ai-av" style="background:linear-gradient(135deg,#ff7a45,#ff4f9a)">🤖</span><span class="who"><b id="vs-ai-name">Nova</b><span class="ai-bubble" id="vs-ai-say"></span><span class="x" id="vs-ai-x"></span></span><span class="pts" id="vs-ai-pts">0</span></div>
+    </div>
+
+    <form class="search" id="search" autocomplete="off">
+      <span class="mag">🔍</span>
+      <label for="guess"><span class="qtext" id="g-query"></span><input id="guess" type="text" enterkeyhint="search" autocapitalize="off" spellcheck="false" maxlength="40" placeholder="…"></label>
+      <button class="btn primary" id="go" type="submit"><span>🔍</span><span class="lbl">Search</span></button>
+    </form>
+
+    <div class="status">
+      <div class="strikes" id="strikes" aria-label="Strikes"></div>
+      <div class="timer hidden" id="timer">60</div>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+
+    <div class="board" id="board"></div>
+
+    <div class="actions" id="actions">
+      <button class="btn" id="hint">💡 Hint <span id="hint-n"></span></button>
+      <button class="btn ghost" id="pass">Give up</button>
+    </div>
+    <div class="round-banner hidden" id="banner">
+      <div><b id="banner-title"></b><br><span id="banner-sub"></span></div>
+      <button class="btn primary" id="next">Next ▸</button>
+    </div>
+  </main>
+
+  <!-- ============ MODAL ============ -->
+  <div class="modal hidden" id="modal" role="dialog" aria-modal="true">
+    <div class="sheet"><button class="close" aria-label="Close">✕</button><div id="modal-body"></div></div>
+  </div>
+
+  <canvas id="confetti"></canvas>
+  <div class="sr" id="announce" aria-live="assertive"></div>
+  <noscript><p style="text-align:center;padding:40px">Autofeud needs JavaScript.</p></noscript>
+  <script>
+/* Autofeud — search-completion bank.
+   Each entry: "query|answer 1|answer 2|...|answer 10", most popular first.
+   "display=key,key" sets the words that count as a hit; without "=" every
+   meaningful word of the answer counts. Written for the game (not live data),
+   school friendly. */
+(function (AF) {
+  'use strict';
+
+  AF.CATEGORIES = [
+    { id: 'questions', name: 'Questions', icon: '❓', color: '#7c5cff' },
+    { id: 'animals', name: 'Animals', icon: '🐾', color: '#18b67a' },
+    { id: 'food', name: 'Food', icon: '🍕', color: '#ff8a1f' },
+    { id: 'culture', name: 'Culture', icon: '🎬', color: '#ff4f9a' },
+    { id: 'science', name: 'Science', icon: '🚀', color: '#2f8cff' },
+    { id: 'sports', name: 'Sports & Games', icon: '🏆', color: '#f5b400' },
+    { id: 'life', name: 'People & Life', icon: '🧑', color: '#ff5a4f' },
+    { id: 'school', name: 'School', icon: '📚', color: '#14b8c4' }
+  ];
+
+  AF.BANK = {
+    questions: [
+      'why is the sky|blue|orange at sunset=orange,sunset|red|purple|white|pink|dark at night=dark,black,night|green before a storm=green,storm|grey=grey,gray|yellow',
+      'why do we|dream|yawn|sleep|hiccup=hiccup,hiccups|sneeze|sweat|cry|laugh|blink|shiver',
+      'how to make|slime|pancakes=pancake,pancakes|money|friends=friend,friends|a paper airplane=paper,airplane,plane|bread|ice cream=ice,cream,icecream|cookies=cookie,cookies|a website=website,site|a sandwich=sandwich',
+      'how do i|get taller=taller,tall,height,grow|fall asleep=asleep,sleep|stop hiccups=hiccups,hiccup|get better at drawing=drawing,draw|take a screenshot=screenshot|study for a test=study,test|learn to code=code,coding|make friends=friends,friend|tie a tie=tie|whistle',
+      'what is the|meaning of life=meaning,life|biggest animal=animal,biggest|capital of australia=capital,australia,canberra|fastest car=car,fastest|tallest building=building,tallest|longest river=river,longest|date today=date,today|weather=weather|speed of light=light,speed|best game=game,best',
+      'is it bad to|sleep with wet hair=wet,hair|crack your knuckles=knuckles,knuckle,crack|eat before bed=bed|drink cold water=cold,water|skip breakfast=breakfast,skip|sit too close to the tv=tv,television,close|swallow gum=gum,swallow|sleep too much=oversleep,much|wake up early=early,wake|eat too much sugar=sugar',
+      'what happens if you|swallow gum=gum,swallow|dont sleep=sleep,awake|eat too much candy=candy|touch the sun=sun,touch|fall into a black hole=black,hole|drink salt water=salt|crack your knuckles=knuckles,knuckle|sneeze with your eyes open=sneeze,eyes|stare at the sun=stare|hold your breath=breath,breathe',
+      'how long does it take to|learn piano=piano|get to the moon=moon|boil an egg=egg,boil|digest food=digest,food|fall asleep=asleep,sleep|learn a language=language|walk a mile=walk,mile|grow hair=hair,grow|heal a broken bone=bone,broken,heal|charge a phone=phone,charge',
+      'why do i|feel tired=tired|get hiccups=hiccups,hiccup|yawn so much=yawn|sneeze in the sun=sneeze|have nightmares=nightmares,nightmare|crave sugar=sugar,crave|feel cold=cold|get headaches=headaches,headache|forget things=forget|dream every night=dream,dreams',
+      'can you|see the great wall from space=wall,space,great|sneeze in your sleep=sneeze|breathe in space=breathe,breath|swim in the dead sea=dead,sea,swim|eat snow=snow|fly a kite in the rain=kite|hear the sun=hear|dig to china=dig,china|tickle yourself=tickle|count to a billion=count,billion'
+    ],
+    animals: [
+      'why do cats|purr|knead|like boxes=boxes,box|sleep so much=sleep|hate water=water|have whiskers=whiskers,whisker|meow|land on their feet=land,feet|bring you gifts=gifts,gift|eat grass=grass',
+      'can dogs eat|grapes=grapes,grape|bananas=bananas,banana|chocolate|apples=apples,apple|cheese|strawberries=strawberries,strawberry|watermelon|popcorn|peanut butter=peanut,butter|carrots=carrots,carrot',
+      'why do dogs|bark|howl|lick you=lick,licking|wag their tails=wag,tail,tails|eat grass=grass|sniff everything=sniff,smell|sleep so much=sleep|chase their tails=chase|tilt their heads=tilt,head|dig holes=dig,holes,hole',
+      'how long do|cats live=cats,cat|dogs live=dogs,dog|hamsters live=hamsters,hamster|turtles live=turtles,turtle|goldfish live=goldfish,fish|rabbits live=rabbits,rabbit,bunny|parrots live=parrots,parrot|horses live=horses,horse|elephants live=elephants,elephant|spiders live=spiders,spider',
+      'are sharks|mammals=mammals,mammal|fish|dangerous|dinosaurs=dinosaurs,dinosaur|older than trees=trees,tree,older|blind|smart|friendly|endangered|cold blooded=cold,blooded',
+      'what do pandas|eat|do all day=day|sound like=sound|look like=look|drink|need to survive=survive|weigh=weigh,weight|do for fun=fun|sleep on=sleep|eat besides bamboo=bamboo,besides',
+      'can penguins|fly|swim|breathe underwater=underwater,breathe|live in the arctic=arctic|jump|walk|see in the dark=dark,see|get cold=cold|taste food=taste|recognize their name=name,recognize',
+      'why do birds|sing|fly south=south,fly|migrate|chirp in the morning=chirp,morning|fly in a v=v,formation|sit on power lines=power,lines,wire,wires|have feathers=feathers,feather|build nests=nests,nest|lay eggs=eggs,egg|hop',
+      'how big is a|blue whale=whale|giraffe|elephant|t rex=rex,trex|megalodon|polar bear=polar,bear|hippo=hippo,hippopotamus|gorilla|great white shark=shark,white|anaconda=anaconda,snake',
+      'do fish|sleep|feel pain=pain|drink water=drink,water|have feelings=feelings,feeling|get thirsty=thirsty,thirst|have ears=ears,ear,hear|blink|fart|breathe|get bored=bored'
+    ],
+    food: [
+      'is pizza|healthy|a vegetable=vegetable|from italy=italy,italian|bad for you=bad|a pie=pie|good cold=cold|a sandwich=sandwich|junk food=junk|ok for breakfast=breakfast|gluten free=gluten',
+      'best toppings for|pizza|pancakes=pancakes,pancake|ice cream=ice,cream|waffles=waffles,waffle|popcorn|tacos=tacos,taco|hot dogs=hot,dog,dogs,hotdog|burgers=burgers,burger|nachos=nachos,nacho|yogurt=yogurt,yoghurt',
+      'why is chocolate|bad for dogs=dogs,dog|so good=good,tasty,delicious|addictive|brown|bitter|expensive|healthy|sweet|melting=melting,melt|called chocolate=called,name',
+      'what fruit is|the healthiest=healthiest,healthy|the biggest=biggest,big|the sweetest=sweetest,sweet|red|yellow|green|purple|spiky=spiky,spikes|the smallest=smallest,small|the most popular=popular',
+      'can you freeze|bread|milk|cheese|eggs=eggs,egg|bananas=bananas,banana|rice|cooked pasta=pasta|yogurt|cake|potatoes=potatoes,potato',
+      'how to cook|pasta|rice|eggs=eggs,egg|steak|bacon|chicken|potatoes=potatoes,potato|broccoli|salmon|quinoa',
+      'why are bananas|curved=curved,curve,bent|yellow|radioactive|good for you=healthy|berries=berries,berry|turning brown=brown|called bananas=called,name|sticky|so cheap=cheap|slippery',
+      'what goes well with|rice|pasta|chicken|salmon|steak|mac and cheese=mac,macaroni|burgers=burgers,burger|tacos=tacos,taco|soup|pancakes=pancakes,pancake',
+      'is it safe to eat|raw cookie dough=dough,cookie|moldy bread=moldy,mold|expired yogurt=expired,yogurt|raw eggs=eggs,egg,raw|sushi|snow|apple seeds=seeds,seed,apple|potato skin=skin,potato|rice left out=rice,left|popcorn kernels=kernels,kernel,popcorn',
+      'why does ice cream|give you brain freeze=brain,freeze|melt so fast=melt,fast|make you thirsty=thirsty|taste better in a cone=cone|hurt your teeth=teeth,tooth|make you cold=cold|get icy=icy|taste so good=good,taste|come in so many flavors=flavors,flavor|make you happy=happy'
+    ],
+    culture: [
+      'how to draw|a cat=cat|a dog=dog|anime|a horse=horse|a dragon=dragon|a car=car|a flower=flower|a heart=heart|hands=hands,hand|a person=person,human,people',
+      'who invented|the internet=internet|the light bulb=light,bulb,lightbulb|the telephone=telephone,phone|school|the car=car|electricity|pizza|the airplane=airplane,plane|video games=video,games,game|math=math,maths',
+      'best video games|of all time=all,time,ever|for kids=kids|on switch=switch,nintendo|for pc=pc,computer|to play with friends=friends,friend|free=free|on phone=phone,mobile|for two players=two,players,2|offline|with a story=story',
+      'songs that|make you cry=cry|get stuck in your head=stuck,head|make you happy=happy|went viral=viral|are good to dance to=dance|are good for workouts=workout,workouts|are hard to sing=sing,hard|everyone knows=everyone,knows|start with a whistle=whistle|are about summer=summer',
+      'why is minecraft|so popular=popular|blocky=blocky,blocks,block|so laggy=laggy,lag|called minecraft=called,name|good for kids=kids|so fun=fun|not working=working,broken|educational=educational,education|pixelated=pixelated,pixels|so expensive=expensive',
+      'how to get better at|drawing=drawing,draw|chess|basketball|math|writing=writing,write|singing=singing,sing|soccer=soccer,football|typing=typing,type|coding=coding,code|piano',
+      'what does|lol mean=lol|brb mean=brb|idk mean=idk|goat mean=goat|npc mean=npc|afk mean=afk|gg mean=gg|sus mean=sus|ttyl mean=ttyl|fyi mean=fyi',
+      'movies about|dinosaurs=dinosaurs,dinosaur|space|dogs=dogs,dog|robots=robots,robot|time travel=time,travel|sharks=sharks,shark|dragons=dragons,dragon|superheroes=superheroes,superhero,heroes,hero|aliens=aliens,alien|the ocean=ocean,sea',
+      'how tall is|the tallest person=tallest,person|lebron james=lebron,james|the eiffel tower=eiffel,tower|mount everest=everest,mount|a giraffe=giraffe|the statue of liberty=statue,liberty|big ben=ben|the empire state building=empire,state|burj khalifa=burj,khalifa|shrek'
+    ],
+    science: [
+      'is pluto a|planet|dwarf planet=dwarf|star|moon|dog|asteroid|comet|god|gas giant=gas,giant|cold planet=cold',
+      'how hot is the|sun|earths core=core,earth|lava|moon|surface of venus=venus|mercury|sahara desert=sahara,desert|lightning bolt=lightning,bolt|candle flame=candle,flame|mars',
+      'why is mars|red|cold|called mars=called,name|dusty=dusty,dust|dead|smaller than earth=smaller,small|not habitable=habitable,live,life|so far away=far|important|round',
+      'how many planets|are there=there|are in the solar system=solar,system|have rings=rings,ring|have moons=moons,moon|are in the universe=universe|can fit in the sun=fit,sun|have life=life|are gas giants=gas|are bigger than earth=bigger,earth|are habitable=habitable',
+      'what would happen if the|sun exploded=sun,exploded,explode|moon disappeared=moon,disappeared,disappear|earth stopped spinning=spinning,spin,stopped|internet went down=internet|oceans dried up=oceans,ocean,dried|earth was flat=flat|bees died=bees,bee|dinosaurs were alive=dinosaurs,dinosaur|moon crashed into earth=crashed,crash|earth had rings=rings,ring',
+      'why do we have|fingerprints=fingerprints,fingerprint|eyebrows=eyebrows,eyebrow|wisdom teeth=wisdom,teeth|leap years=leap|belly buttons=belly,button,navel|time zones=time,zones,zone|seasons=seasons,season|dreams=dreams,dream|an appendix=appendix|two eyes=two,eyes',
+      'how do volcanoes|form|erupt|work|affect the environment=environment|create islands=islands,island|get their names=names,name|go dormant=dormant,die|make rocks=rocks,rock|cause earthquakes=earthquakes,earthquake|look inside=inside',
+      'how fast is|light|sound|a cheetah=cheetah|the earth=earth|usain bolt=usain,bolt|a peregrine falcon=falcon,peregrine|a rocket=rocket|the fastest car=car|my internet=internet,wifi|a snail=snail',
+      'is water|wet|a liquid=liquid|blue|a compound=compound|an element=element|healthy|renewable|alive|infinite|a mineral=mineral',
+      'fun facts about|space|animals=animals,animal|the ocean=ocean,sea|dogs=dogs,dog|cats=cats,cat|the human body=body,human|sharks=sharks,shark|the moon=moon|dinosaurs=dinosaurs,dinosaur|yourself'
+    ],
+    sports: [
+      'who is the best|soccer player=soccer,football|basketball player=basketball|youtuber|superhero=superhero,hero|pokemon|chess player=chess|tennis player=tennis|singer|f1 driver=f1,driver,racing|goalkeeper=goalkeeper,goalie',
+      'how to play|chess|guitar|piano|uno|sudoku|checkers|tic tac toe=tic,tac,toe|dominoes=dominoes,domino|minecraft|among us=among',
+      'why is soccer|called soccer=called,name|so popular=popular|boring|the best sport=best|90 minutes=90,minutes,ninety|played on grass=grass|so hard=hard|not popular in america=america,usa|so expensive=expensive|fun',
+      'how many players|on a soccer team=soccer,football|on a basketball team=basketball|in among us=among|on a volleyball team=volleyball|on a baseball team=baseball|in chess=chess|on a hockey team=hockey|in fortnite=fortnite|on a rugby team=rugby|in uno=uno',
+      'is chess a|sport|game|board game=board|olympic sport=olympic,olympics|strategy game=strategy|hobby|skill|math game=math|good for your brain=brain|solved game=solved',
+      'fastest|animal|car|runner=runner,human,person|bird|fish|plane=plane,jet|land animal=land|train|roller coaster=roller,coaster|dog breed=dog,breed',
+      'how long is a|soccer game=soccer,football|basketball game=basketball|marathon|mile|football field=field|light year=light,year|day on mars=mars|minecraft day=minecraft|year on jupiter=jupiter|hockey game=hockey'
+    ],
+    life: [
+      'how to become a|youtuber|streamer|doctor|pilot|teacher|game developer=developer,game|chef|vet=vet,veterinarian|astronaut|lawyer',
+      'how to be|happy|confident|popular|funny|a good friend=friend|productive|more patient=patient|a better person=better,person|smart|organized',
+      'how to stop|hiccups=hiccups,hiccup|procrastinating=procrastinating,procrastinate,procrastination|being bored=bored,boredom|overthinking=overthinking,overthink|biting nails=nails,nail,biting|a nosebleed=nosebleed,nose|sneezing=sneezing,sneeze|being shy=shy|yawning=yawning,yawn|a cough=cough',
+      'my mom is|the best=best|always mad=mad,angry|taking my phone=phone|so annoying=annoying|my best friend=friend|a teacher=teacher|never home=home|too strict=strict|a superhero=superhero,hero|always right=right',
+      'things to do when|bored|you cant sleep=sleep|it rains=rains,rain,raining|you are sad=sad|home alone=alone|it snows=snows,snow|your friends are busy=busy,friends|in a car=car|the wifi is down=wifi,internet|at a sleepover=sleepover',
+      'my best friend|is moving away=moving,move,away|ignores me=ignores,ignore|is mad at me=mad|birthday ideas=birthday|quiz|is a dog=dog|quotes=quotes,quote|has a crush=crush|doesnt text back=text|is annoying=annoying',
+      'why am i|always tired=tired|so hungry=hungry|always cold=cold|so bored=bored|so short=short|sneezing=sneezing,sneeze|so lazy=lazy|not growing=growing,grow|always sleepy=sleepy|like this=this',
+      'how to make friends|at school=school|online|as a teen=teen,teenager|at camp=camp|when you are shy=shy|in a new city=city|at work=work|in college=college|with your neighbors=neighbors,neighbor|on discord=discord',
+      'what to do on|a rainy day=rainy,rain|your birthday=birthday|a snow day=snow|the weekend=weekend|summer break=summer|halloween|a road trip=road,trip|new years eve=years,eve|a sleepover=sleepover|valentines day=valentines,valentine'
+    ],
+    school: [
+      'how to study for|a test=test|finals=finals,final|math|exams=exams,exam|a spelling test=spelling|history|science|biology|the sat=sat|a quiz=quiz',
+      'why is math|so hard=hard|important|so boring=boring|everywhere|called math=called,name|fun|a language=language|real|useful|invented=invented,invent',
+      'is homework|bad|necessary|illegal|helpful|a waste of time=waste|good for you=good|stressful=stressful,stress|banned|graded=graded,grade|optional',
+      'how to focus|in class=class|on homework=homework|while studying=studying,study|better|on reading=reading,read|when tired=tired|with noise=noise|for a long time=long|on one thing=one,thing|during exams=exams,exam',
+      'why do we have to|go to school=school|learn math=math|sleep|eat|pay taxes=taxes,tax|wear uniforms=uniforms,uniform|do homework=homework|learn history=history|wake up early=early,wake|read shakespeare=shakespeare',
+      'how to write|an essay=essay|a poem=poem|a story=story|a book=book|a letter=letter|in cursive=cursive|a song=song|a speech=speech|a resume=resume|neatly=neatly,neat',
+      'best way to|learn a language=language|memorize things=memorize,memory|study=study|learn math=math|take notes=notes,note|wake up=wake|save money=money,save|make friends=friends,friend|learn to type=type,typing|read faster=read,faster',
+      'what grade is a|90=90|85=85|70=70|75=75|80=80|60=60|95=95|100=100|50=50|65=65',
+      'what is the hardest|subject in school=subject|language to learn=language|math problem=problem|word to spell=spell,word|test in the world=test|instrument to learn=instrument|sport=sport|class in college=college,class|puzzle=puzzle|riddle=riddle'
+    ]
+  };
+
+  // words the AI may blurt out when it guesses wrong (plus answers from other searches)
+  AF.DECOYS = ['funny', 'weird', 'scary', 'cool', 'fast', 'slow', 'loud', 'quiet', 'green', 'pizza', 'robots', 'aliens',
+    'sleep', 'money', 'school', 'music', 'dance', 'magic', 'jump', 'swim', 'cats', 'cheese', 'space', 'phone', 'games',
+    'hungry', 'clean', 'happy', 'angry', 'dangerous', 'expensive', 'rainbow', 'shiny', 'cold', 'hot'];
+})(window.AF = window.AF || {});
+
+/* Autofeud — engine: bank parsing, forgiving answer matching, seeded random,
+   humanlike AI rival, profile storage, levels and achievements. No DOM here. */
+(function (AF) {
+  'use strict';
+
+  /* ---------- text helpers ---------- */
+  const STOP = new Set(('a an the to of in on at for and or is are be my your you we i it its with from so do does did ' +
+    'very too that this than as by up out me im am was were has have had their they them our us he she his her what why how ' +
+    'when who can will just like dont cant doesnt').split(' '));
+
+  function norm(s) {
+    return String(s).toLowerCase().replace(/[’'`]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+  function stem(w) {
+    if (w.length > 5 && w.endsWith('ies')) return w.slice(0, -3) + 'y';
+    if (w.length > 5 && w.endsWith('ing')) return w.slice(0, -3);
+    if (w.length > 4 && w.endsWith('ed')) return w.slice(0, -2);
+    if (w.length > 4 && /(ches|shes|xes|sses|oes)$/.test(w)) return w.slice(0, -2);
+    if (w.length > 3 && w.endsWith('s') && !w.endsWith('ss')) return w.slice(0, -1);
+    return w;
+  }
+  function lev(a, b, max) {
+    if (Math.abs(a.length - b.length) > max) return max + 1;
+    let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+    for (let i = 1; i <= a.length; i++) {
+      const cur = [i];
+      let best = i;
+      for (let j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) cur[j] = Math.min(cur[j], prev[j - 2] + 1);
+        if (cur[j] < best) best = cur[j];
+      }
+      if (best > max) return max + 1;
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  // allowed typos grow with word length
+  const tol = n => (n >= 9 ? 2 : n >= 5 ? 1 : 0);
+  function wordsOf(s) { return norm(s).split(' ').filter(w => w && !STOP.has(w)); }
+  // 2 = same word (or same stem), 1 = close enough to be a typo, 0 = different
+  function sameWord(a, b) {
+    if (a === b) return 2;
+    const sa = stem(a), sb = stem(b);
+    if (sa === sb) return 2;
+    const t = tol(Math.min(sa.length, sb.length));
+    return t > 0 && lev(sa, sb, t) <= t ? 1 : 0;
+  }
+
+  /* ---------- bank ---------- */
+  function parseEntry(line, cat, idx) {
+    const parts = line.split('|');
+    const query = parts[0];
+    const answers = parts.slice(1).map((raw, rank) => {
+      const [display, keyStr] = raw.split('=');
+      const keys = keyStr ? keyStr.split(',').map(norm).filter(Boolean) : wordsOf(display);
+      return { rank, text: display, keys: keys.length ? keys : [norm(display)], full: norm(display), points: (10 - rank) * 1000 };
+    });
+    return { id: cat + ':' + idx, cat, query, answers };
+  }
+  AF.QUESTIONS = [];
+  for (const c of AF.CATEGORIES) AF.BANK[c.id].forEach((l, i) => AF.QUESTIONS.push(parseEntry(l, c.id, i)));
+  AF.byId = id => AF.QUESTIONS.find(q => q.id === id);
+
+  /* ---------- matching ----------
+     Returns { answer } for the best unrevealed hit, { dupe } if the guess only
+     matches answers already on the board, or {} for a miss. */
+  AF.match = function (q, guess, revealed) {
+    const g = norm(guess);
+    if (!g) return {};
+    // the guess may repeat the search itself ("why do cats purr")
+    const qWords = new Set(wordsOf(q.query));
+    const gw = wordsOf(g).filter(w => !qWords.has(w));
+    const toks = gw.length ? gw : g.split(' ').filter(w => !qWords.has(w));
+    let best = null, bestScore = 0, dupe = null;
+    for (const a of q.answers) {
+      let score = 0;
+      if (g === a.full || norm(q.query + ' ' + a.text) === g) score = 100;
+      else {
+        for (const k of a.keys) score += Math.max(0, ...toks.map(t => sameWord(t, k)));
+        if (!score && a.full.length >= 8 && lev(g, a.full, tol(a.full.length)) <= tol(a.full.length)) score = 1;
+      }
+      if (!score) continue;
+      if (revealed[a.rank]) { if (!dupe || score > dupe.s) dupe = { a, s: score }; continue; }
+      if (score > bestScore || (score === bestScore && a.rank < best.rank)) { best = a; bestScore = score; }
+    }
+    if (best) return { answer: best };
+    if (dupe) return { dupe: dupe.a };
+    return {};
+  };
+
+  /* ---------- seeded random ---------- */
+  AF.rng = function (seed) {
+    let s = seed >>> 0 || 1;
+    return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+  };
+  AF.hash = str => { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+  AF.shuffle = (arr, r) => { r = r || Math.random; for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+  AF.today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+
+  /* pick n questions: daily = same for everyone that day, otherwise avoid recently seen ones */
+  AF.pickQuestions = function (n, cat, opts) {
+    opts = opts || {};
+    const pool = AF.QUESTIONS.filter(q => !cat || cat === 'mixed' || q.cat === cat);
+    if (opts.daily) {
+      const r = AF.rng(AF.hash('autofeud-' + opts.daily));
+      const cats = AF.shuffle(AF.CATEGORIES.map(c => c.id), r).slice(0, n);
+      return cats.map(c => { const list = AF.QUESTIONS.filter(q => q.cat === c); return list[Math.floor(r() * list.length)]; });
+    }
+    const seen = new Set(opts.seen || []);
+    const fresh = AF.shuffle(pool.filter(q => !seen.has(q.id)));
+    const old = AF.shuffle(pool.filter(q => seen.has(q.id)));
+    const out = fresh.concat(old);
+    while (out.length < n) out.push(...AF.shuffle(pool.slice()));
+    return out.slice(0, n);
+  };
+
+  /* ---------- AI rival ---------- */
+  AF.AI_LEVELS = {
+    easy: { name: 'Easy', hit: 0.4, bias: 2.2, typo: 0.18, think: [1.8, 3.4] },
+    medium: { name: 'Medium', hit: 0.58, bias: 1.5, typo: 0.1, think: [1.3, 2.6] },
+    hard: { name: 'Hard', hit: 0.76, bias: 0.9, typo: 0.05, think: [0.9, 2.0] }
+  };
+  AF.AI_NAMES = [['Nova', '🤖'], ['Pixel', '👾'], ['Byte', '🦾'], ['Echo', '🛰️'], ['Juno', '🧠'], ['Sparky', '⚡'], ['Mochi', '🐱'], ['Ziggy', '🦊']];
+
+  function typo(word, r) {
+    if (word.length < 5) return word;
+    const i = 1 + Math.floor(r() * (word.length - 2));
+    const k = r();
+    if (k < 0.4) return word.slice(0, i) + word.slice(i + 1); // dropped letter
+    if (k < 0.75) return word.slice(0, i) + word[i + 1] + word[i] + word.slice(i + 2); // swapped
+    return word.slice(0, i) + word[i] + word.slice(i); // doubled
+  }
+
+  /* Decide the AI's next guess. Returns { text, think } where think is seconds. */
+  AF.aiGuess = function (q, revealed, tried, level, r) {
+    r = r || Math.random;
+    const L = AF.AI_LEVELS[level] || AF.AI_LEVELS.medium;
+    const think = L.think[0] + r() * (L.think[1] - L.think[0]);
+    const open = q.answers.filter(a => !revealed[a.rank]);
+    // more likely to know the answer while the board is still full; easy bots stick to the obvious ones
+    const hitChance = L.hit * (0.65 + 0.35 * open.length / 10);
+    if (open.length && r() < hitChance) {
+      const w = open.map(a => Math.pow(11 - a.rank, L.bias));
+      let x = r() * w.reduce((s, v) => s + v, 0), pick = open[0];
+      for (let i = 0; i < open.length; i++) { x -= w[i]; if (x <= 0) { pick = open[i]; break; } }
+      let text = pick.keys[Math.floor(r() * pick.keys.length)];
+      if (r() < 0.35 && pick.text.split(' ').length <= 4) text = pick.text; // sometimes types the full phrase
+      if (r() < L.typo) { const t = typo(text, r); if (AF.match(q, t, revealed).answer === pick) text = t; }
+      if (!tried.has(norm(text)) && AF.match(q, text, revealed).answer) return { text, think };
+    }
+    // wrong guess: something plausible from the same category, or a generic word
+    const same = AF.QUESTIONS.filter(o => o.cat === q.cat && o !== q).flatMap(o => o.answers.slice(0, 5).map(a => a.keys[0]));
+    const pool = AF.shuffle(same.concat(AF.DECOYS), r);
+    for (const w of pool) {
+      const m = AF.match(q, w, revealed);
+      if (!m.answer && !m.dupe && !tried.has(norm(w))) return { text: w, think: think * 0.9 };
+    }
+    return { text: 'no idea', think };
+  };
+  AF.AI_LINES = {
+    hit: ['Nailed it!', 'Easy one.', 'Knew it!', 'Yesss!', 'Called it.', 'Too easy 😎'],
+    miss: ['Hmm, nope.', 'Ugh!', 'Really?!', 'I was so sure…', 'Wait what', 'Oops 😅'],
+    think: ['Hmm…', 'Let me think…', 'Ooh, I know…', 'Thinking…', 'Hmmmm']
+  };
+
+  /* ---------- profile ---------- */
+  const KEY = 'autofeud.v1';
+  const DEFAULT = () => ({
+    name: '', xp: 0,
+    settings: { sound: true, theme: 'auto', motion: true },
+    stats: { games: 0, rounds: 0, found: 0, perfect: 0, tops: 0, deep: 0, wins: 0, losses: 0, bestRun: 0,
+      best: { classic: 0, daily: 0, versus: 0, speed: 0 }, speedBest: 0, cats: {} },
+    daily: { last: '', streak: 0, history: {} },
+    ach: {}, seen: []
+  });
+  function merge(base, extra) {
+    for (const k in extra) {
+      if (extra[k] && typeof extra[k] === 'object' && !Array.isArray(extra[k]) && base[k] && typeof base[k] === 'object') merge(base[k], extra[k]);
+      else if (extra[k] !== undefined) base[k] = extra[k];
+    }
+    return base;
+  }
+  AF.Store = {
+    load() {
+      try { const raw = localStorage.getItem(KEY); if (raw) return merge(DEFAULT(), JSON.parse(raw)); } catch (e) { /* private mode */ }
+      return DEFAULT();
+    },
+    save(p) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) { /* ignore */ } },
+    reset() { try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ } return DEFAULT(); }
+  };
+
+  /* ---------- levels ---------- */
+  AF.levelOf = xp => Math.floor(Math.sqrt(xp / 400)) + 1;
+  AF.xpFor = lvl => (lvl - 1) * (lvl - 1) * 400;
+  AF.TITLES = ['Newbie', 'Searcher', 'Curious Cat', 'Clicker', 'Browser', 'Trend Spotter', 'Know-It-All', 'Mind Reader', 'Search Wizard', 'Internet Legend'];
+  AF.titleOf = lvl => AF.TITLES[Math.min(AF.TITLES.length - 1, Math.floor((lvl - 1) / 3))];
+
+  /* ---------- achievements ---------- */
+  AF.ACHIEVEMENTS = [
+    { id: 'first', icon: '🔍', name: 'First Search', desc: 'Finish your first game.' },
+    { id: 'perfect', icon: '💯', name: 'Top 10', desc: 'Find all 10 answers in one round.' },
+    { id: 'streak5', icon: '🎯', name: 'Sharpshooter', desc: 'Get 5 answers in a row without a miss.' },
+    { id: 'mind', icon: '🧠', name: 'Mind Reader', desc: 'Find the #1 answer in every round of a game.' },
+    { id: 'deep', icon: '🕳️', name: 'Deep Cut', desc: 'Find a #10 answer 10 times.' },
+    { id: 'k50', icon: '🏅', name: '50K Club', desc: 'Score 50,000 in a Classic game.' },
+    { id: 'nohint', icon: '🙈', name: 'No Help Needed', desc: 'Score 30,000 in Classic without hints.' },
+    { id: 'rival', icon: '🤝', name: 'Rival', desc: 'Win a Versus match.' },
+    { id: 'buster', icon: '🦾', name: 'Bot Buster', desc: 'Beat the Hard AI.' },
+    { id: 'speed20', icon: '⚡', name: 'Speed Demon', desc: 'Find 20 answers in one Speed Rush.' },
+    { id: 'daily3', icon: '📅', name: 'Daily Habit', desc: 'Play the Daily Challenge 3 days in a row.' },
+    { id: 'explorer', icon: '🧭', name: 'Explorer', desc: 'Play a round in every category.' }
+  ];
+})(window.AF = window.AF || {});
+
+/* Autofeud — UI, game flow, sound, effects */
+(function (AF) {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const fmt = n => Math.round(n).toLocaleString('en-US');
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const catOf = id => AF.CATEGORIES.find(c => c.id === id);
+
+  /* ================= sound (synthesized, no files) ================= */
+  const Sound = {
+    ctx: null, on: true,
+    init() {
+      if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      this.ctx = new AC();
+      this.out = this.ctx.createDynamicsCompressor();
+      this.out.connect(this.ctx.destination);
+    },
+    tone(f, dur, type, vol, delay, slide) {
+      if (!this.on || !this.ctx) return;
+      const c = this.ctx, t = c.currentTime + (delay || 0);
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(f, t);
+      if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol || 0.15, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(this.out);
+      o.start(t); o.stop(t + dur + 0.02);
+    },
+    hit(rank) { const f = 620 + (9 - rank) * 34; this.tone(f, 0.18, 'triangle', 0.16); this.tone(f * 1.5, 0.32, 'sine', 0.13, 0.08); this.tone(f * 3, 0.2, 'sine', 0.04, 0.12); },
+    aiHit() { this.tone(440, 0.16, 'triangle', 0.12); this.tone(554, 0.26, 'triangle', 0.1, 0.08); },
+    miss() { this.tone(180, 0.3, 'sawtooth', 0.07, 0, 110); this.tone(120, 0.32, 'square', 0.04, 0.02, 90); },
+    dupe() { this.tone(520, 0.08, 'sine', 0.08); this.tone(520, 0.08, 'sine', 0.06, 0.1); },
+    flip() { this.tone(300 + Math.random() * 60, 0.06, 'triangle', 0.05); },
+    key() { this.tone(1500 + Math.random() * 400, 0.018, 'square', 0.012); },
+    tick() { this.tone(980, 0.05, 'square', 0.04); },
+    clear() { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.28, 'triangle', 0.13, i * 0.09)); },
+    win() { [523, 659, 784, 1047, 1319].forEach((f, i) => this.tone(f, 0.4, 'triangle', 0.13, i * 0.11)); this.tone(1568, 0.6, 'sine', 0.08, 0.6); },
+    lose() { [392, 330, 262].forEach((f, i) => this.tone(f, 0.35, 'triangle', 0.11, i * 0.16)); },
+    hint() { this.tone(880, 0.12, 'sine', 0.08); this.tone(1320, 0.18, 'sine', 0.06, 0.07); }
+  };
+
+  /* ================= confetti ================= */
+  const Confetti = {
+    parts: [], running: false,
+    burst(n, x, y) {
+      if (document.documentElement.dataset.motion === 'off') return;
+      const cv = $('confetti');
+      cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio;
+      const cols = ['#7c5cff', '#ff4f9a', '#ff8a1f', '#f5b400', '#16b47a', '#2f8cff'];
+      x = x === undefined ? innerWidth / 2 : x; y = y === undefined ? innerHeight / 3 : y;
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2, s = 4 + Math.random() * 9;
+        this.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 6, r: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.4,
+          w: 6 + Math.random() * 6, h: 8 + Math.random() * 8, c: cols[i % cols.length], life: 90 + Math.random() * 60 });
+      }
+      if (!this.running) { this.running = true; requestAnimationFrame(() => this.step()); }
+    },
+    step() {
+      const cv = $('confetti'), g = cv.getContext('2d'), k = devicePixelRatio;
+      g.clearRect(0, 0, cv.width, cv.height);
+      this.parts = this.parts.filter(p => p.life-- > 0 && p.y < innerHeight + 40);
+      for (const p of this.parts) {
+        p.vy += 0.32; p.vx *= 0.985; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+        g.save(); g.translate(p.x * k, p.y * k); g.rotate(p.r); g.globalAlpha = Math.min(1, p.life / 30);
+        g.fillStyle = p.c; g.fillRect(-p.w * k / 2, -p.h * k / 2, p.w * k, p.h * k * Math.abs(Math.cos(p.r * 2)) + k); g.restore();
+      }
+      if (this.parts.length) requestAnimationFrame(() => this.step());
+      else { this.running = false; g.clearRect(0, 0, cv.width, cv.height); }
+    }
+  };
+
+  /* ================= app ================= */
+  const MODES = {
+    classic: { name: 'Classic', rounds: 5, strikes: 3, hints: 3 },
+    daily: { name: 'Daily Challenge', rounds: 5, strikes: 3, hints: 2 },
+    versus: { name: 'Versus AI', rounds: 5, strikes: 3, hints: 1 },
+    speed: { name: 'Speed Rush', rounds: 99, strikes: 0, hints: 2, time: 60 }
+  };
+
+  const App = {
+    p: null, mode: 'classic', cat: 'mixed', aiLevel: 'medium', g: null, token: 0,
+
+    boot() {
+      this.p = AF.Store.load();
+      Sound.on = this.p.settings.sound;
+      this.applyTheme();
+      this.renderProfile();
+      this.renderSetup();
+      this.bind();
+      this.demo();
+      this.refreshDaily();
+    },
+    save() { AF.Store.save(this.p); },
+
+    applyTheme() {
+      const s = this.p.settings, root = document.documentElement;
+      if (s.theme === 'auto') delete root.dataset.theme; else root.dataset.theme = s.theme;
+      root.dataset.motion = s.motion ? 'on' : 'off';
+    },
+
+    /* ---------- profile ---------- */
+    renderProfile() {
+      const p = this.p, lvl = AF.levelOf(p.xp), name = p.name || 'Player';
+      $('p-name').textContent = name;
+      $('avatar').textContent = name[0].toUpperCase();
+      $('p-level').textContent = 'Lv ' + lvl + ' · ' + AF.titleOf(lvl);
+      const a = AF.xpFor(lvl), b = AF.xpFor(lvl + 1);
+      $('p-xp').style.width = Math.round((p.xp - a) / (b - a) * 100) + '%';
+    },
+
+    /* ---------- home ---------- */
+    renderSetup() {
+      const cats = [{ id: 'mixed', name: 'Mixed', icon: '🎲' }].concat(AF.CATEGORIES);
+      $('cats').innerHTML = cats.map(c => `<button class="chip${c.id === this.cat ? ' sel' : ''}" data-cat="${c.id}">${c.icon} ${c.name}</button>`).join('');
+      $('ai-levels').innerHTML = Object.keys(AF.AI_LEVELS).map(k => `<button data-lvl="${k}" class="${k === this.aiLevel ? 'sel' : ''}">${AF.AI_LEVELS[k].name}</button>`).join('');
+      document.querySelectorAll('.mode').forEach(m => m.classList.toggle('sel', m.dataset.mode === this.mode));
+      $('cat-wrap').classList.toggle('hidden', this.mode === 'daily');
+      $('ai-wrap').classList.toggle('hidden', this.mode !== 'versus');
+      const notes = {
+        classic: '5 rounds · 3 strikes · 3 hints',
+        daily: this.dailyDone() ? 'Done today · ' + fmt(this.p.daily.history[AF.today()].score) + ' pts · replay is practice' : '5 rounds · one per category · 2 hints',
+        versus: 'Best of 5 · you go first in odd rounds',
+        speed: '60 s · +3 s per answer · skip anytime'
+      };
+      $('setup-note').textContent = notes[this.mode];
+    },
+    dailyDone() { return !!this.p.daily.history[AF.today()]; },
+    refreshDaily() {
+      const b = $('daily-badge'), done = this.dailyDone();
+      b.textContent = done ? '✓ ' + fmt(this.p.daily.history[AF.today()].score) : 'NEW';
+      b.className = 'badge ' + (done ? 'done' : 'new');
+    },
+
+    demo() {
+      const samples = AF.shuffle(AF.QUESTIONS.slice()).slice(0, 12);
+      let i = 0;
+      const run = async () => {
+        while (true) {
+          if ($('home').classList.contains('hidden')) { await wait(800); continue; }
+          const q = samples[i++ % samples.length];
+          const qEl = $('demo-q'), drop = $('demo-drop');
+          drop.innerHTML = '';
+          for (let k = 0; k <= q.query.length; k++) {
+            qEl.innerHTML = esc(q.query.slice(0, k)) + '<span class="caret"></span>';
+            await wait(55 + Math.random() * 45);
+          }
+          await wait(250);
+          drop.innerHTML = q.answers.slice(0, 4).map(a => `<div>🔍&nbsp; ${esc(q.query)} <b>${esc(a.text)}</b></div>`).join('');
+          const rows = drop.querySelectorAll('div');
+          for (const r of rows) { await wait(120); r.classList.add('on'); }
+          await wait(2600);
+          rows.forEach(r => r.classList.remove('on'));
+          await wait(300);
+        }
+      };
+      run();
+    },
+
+    /* ---------- events ---------- */
+    bind() {
+      const unlock = () => Sound.init();
+      addEventListener('pointerdown', unlock); addEventListener('keydown', unlock);
+      $('modes').addEventListener('click', e => { const m = e.target.closest('.mode'); if (m) { this.mode = m.dataset.mode; this.renderSetup(); } });
+      $('modes').addEventListener('dblclick', e => { if (e.target.closest('.mode')) this.start(); });
+      $('cats').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) { this.cat = c.dataset.cat; this.renderSetup(); } });
+      $('ai-levels').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { this.aiLevel = b.dataset.lvl; this.renderSetup(); } });
+      $('start').addEventListener('click', () => this.start());
+      $('search').addEventListener('submit', e => { e.preventDefault(); this.playerGuess(); });
+      $('hint').addEventListener('click', () => this.useHint());
+      $('pass').addEventListener('click', () => this.pass());
+      $('next').addEventListener('click', () => this.nextRound());
+      $('quit').addEventListener('click', () => this.confirmQuit());
+      $('profile').addEventListener('click', () => this.open('settings'));
+      document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => this.open(b.dataset.open)));
+      $('modal').addEventListener('click', e => { if (e.target === $('modal') || e.target.closest('.close')) this.closeModal(); });
+      addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !$('modal').classList.contains('hidden')) this.closeModal();
+        else if (e.key === 'Enter' && !$('banner').classList.contains('hidden') && $('modal').classList.contains('hidden') && document.activeElement !== $('guess')) { e.preventDefault(); this.nextRound(); }
+      });
+      $('guess').addEventListener('input', () => { if (this.g && this.g.turn !== 'ai') Sound.key(); });
+    },
+
+    /* ---------- game flow ---------- */
+    start() {
+      Sound.init();
+      const M = MODES[this.mode], today = AF.today();
+      const daily = this.mode === 'daily' ? today : null;
+      const qs = AF.pickQuestions(this.mode === 'speed' ? 40 : M.rounds, daily ? null : this.cat, { daily, seen: this.p.seen });
+      const [aiName, aiEmoji] = AF.AI_NAMES[Math.floor(Math.random() * AF.AI_NAMES.length)];
+      this.token++;
+      this.g = {
+        mode: this.mode, M, qs, idx: -1, score: 0, hints: M.hints, hintsUsed: 0, streak: 0, maxStreak: 0, found: 0,
+        rounds: [], practice: daily && this.dailyDone(), daily,
+        me: { pts: 0, x: 0 }, ai: { pts: 0, x: 0, name: aiName, emoji: aiEmoji, level: this.aiLevel }, turn: 'me',
+        time: M.time || 0, over: false
+      };
+      $('home').classList.add('hidden');
+      $('game').classList.remove('hidden');
+      $('mini-logo').classList.remove('hidden');
+      $('versus').classList.toggle('hidden', this.mode !== 'versus');
+      $('g-scorebox').classList.toggle('hidden', this.mode === 'versus');
+      $('timer').classList.toggle('hidden', this.mode !== 'speed');
+      $('strikes').classList.toggle('hidden', this.mode === 'speed' || this.mode === 'versus');
+      $('pass').textContent = this.mode === 'speed' ? 'Skip ▸' : 'Give up';
+      if (this.mode === 'versus') {
+        const name = this.p.name || 'You';
+        $('vs-me-name').textContent = name; $('vs-me-av').textContent = name[0].toUpperCase();
+        $('vs-ai-name').textContent = aiName + ' · ' + AF.AI_LEVELS[this.aiLevel].name; $('vs-ai-av').textContent = aiEmoji;
+      }
+      if (this.mode === 'speed') this.startTimer();
+      scrollTo(0, 0);
+      this.nextRound();
+    },
+
+    startTimer() {
+      const tok = this.token;
+      let last = performance.now(), lastSec = -1;
+      const loop = now => {
+        if (tok !== this.token || !this.g || this.g.over) return;
+        if ($('modal').classList.contains('hidden') || this.g.inResults) this.g.time -= (now - last) / 1000;
+        last = now;
+        const s = Math.max(0, Math.ceil(this.g.time));
+        $('timer').textContent = s;
+        $('timer').classList.toggle('low', s <= 10);
+        if (s <= 10 && s !== lastSec && s > 0) Sound.tick();
+        lastSec = s;
+        if (this.g.time <= 0) { this.endRound('time'); return; }
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    },
+
+    nextRound() {
+      const g = this.g;
+      if (!g) return;
+      $('banner').classList.add('hidden');
+      g.idx++;
+      if (g.mode !== 'speed' && g.idx >= g.M.rounds) { this.finish(); return; }
+      if (g.idx >= g.qs.length) g.qs.push(...AF.pickQuestions(10, this.cat, {}));
+      const q = g.qs[g.idx];
+      g.round = { q, revealed: {}, by: {}, hinted: {}, strikes: 0, tried: new Set(), over: false, points: 0, foundMe: 0 };
+      g.me.x = 0; g.ai.x = 0;
+      g.turn = g.mode === 'versus' && g.idx % 2 === 1 ? 'ai' : 'me';
+      const c = catOf(q.cat);
+      $('g-cat').innerHTML = c.icon + ' ' + c.name;
+      $('g-cat').style.background = c.color;
+      $('g-round').textContent = g.mode === 'speed' ? 'Search ' + (g.idx + 1) : 'Round ' + (g.idx + 1) + ' of ' + g.M.rounds + (g.practice ? ' · practice' : '');
+      $('g-query').textContent = q.query;
+      $('guess').value = '';
+      $('feedback').textContent = g.mode === 'versus' ? '' : 'Finish the search. Type what comes next.';
+      $('feedback').className = 'feedback';
+      $('board').innerHTML = q.answers.map(a => `<div class="slot" data-r="${a.rank}"><div class="face front"><span class="n">${a.rank + 1}</span><span class="t"></span><span class="p">${fmt(a.points)}</span></div><div class="face back"><span class="n">${a.rank + 1}</span><span class="t"><i>${esc(q.query)}</i> ${esc(a.text)}</span><span class="p"></span></div></div>`).join('');
+      $('actions').classList.remove('hidden');
+      this.renderStrikes();
+      this.renderHint();
+      this.renderScore();
+      this.setTurn(g.turn);
+    },
+
+    setTurn(who) {
+      const g = this.g;
+      g.turn = who;
+      const mine = who === 'me' && !g.round.over;
+      $('guess').disabled = !mine; $('go').disabled = !mine;
+      $('hint').disabled = !mine || g.hints <= 0;
+      $('pass').disabled = !mine;
+      if (g.mode === 'versus') {
+        $('vs-me').classList.toggle('turn', who === 'me' && !g.round.over);
+        $('vs-ai').classList.toggle('turn', who === 'ai' && !g.round.over);
+        $('guess').placeholder = who === 'me' ? 'your turn…' : '';
+      } else $('guess').placeholder = '…';
+      if (mine) setTimeout(() => { if (!$('guess').disabled && $('modal').classList.contains('hidden')) $('guess').focus({ preventScroll: true }); }, 30);
+      if (who === 'ai' && !g.round.over) this.aiTurn();
+    },
+
+    playerGuess() {
+      const g = this.g;
+      if (!g || g.round.over || g.turn !== 'me') return;
+      const text = $('guess').value.trim();
+      if (!text) return;
+      $('guess').value = '';
+      this.judge(text, 'me');
+    },
+
+    async aiTurn() {
+      const g = this.g, tok = this.token, rnd = g.round;
+      const say = t => { $('vs-ai-say').textContent = t; };
+      say(AF.AI_LINES.think[Math.floor(Math.random() * AF.AI_LINES.think.length)]);
+      const pick = AF.aiGuess(rnd.q, rnd.revealed, rnd.tried, g.ai.level);
+      await wait(pick.think * 1000);
+      if (tok !== this.token || rnd !== g.round || rnd.over) return;
+      const input = $('guess');
+      input.value = '';
+      for (const ch of pick.text) {
+        input.value += ch;
+        Sound.key();
+        await wait(70 + Math.random() * 90);
+        if (tok !== this.token || rnd !== g.round) return;
+      }
+      await wait(280);
+      if (tok !== this.token || rnd !== g.round || rnd.over) return;
+      input.value = '';
+      this.judge(pick.text, 'ai');
+    },
+
+    judge(text, who) {
+      const g = this.g, r = g.round, q = r.q;
+      r.tried.add(text.toLowerCase());
+      const m = AF.match(q, text, r.revealed);
+      const fb = $('feedback');
+      if (m.answer) {
+        const a = m.answer, pts = r.hinted[a.rank] ? a.points / 2 : a.points;
+        r.revealed[a.rank] = who; r.by[a.rank] = who;
+        this.flip(a.rank, who, pts);
+        if (who === 'me') {
+          g.streak++; g.maxStreak = Math.max(g.maxStreak, g.streak); g.found++; r.foundMe++;
+          if (g.mode === 'versus') g.me.pts += pts; else g.score += pts;
+          r.points += pts;
+          if (g.mode === 'speed') g.time += 3;
+          Sound.hit(a.rank);
+          fb.textContent = a.rank === 0 ? '#1 answer! +' + fmt(pts) : 'Nice! +' + fmt(pts);
+        } else {
+          g.ai.pts += pts;
+          Sound.aiHit();
+          $('vs-ai-say').textContent = AF.AI_LINES.hit[Math.floor(Math.random() * AF.AI_LINES.hit.length)];
+          fb.textContent = g.ai.name + ' found “' + a.text + '” +' + fmt(pts);
+        }
+        fb.className = 'feedback ok';
+        $('search').classList.remove('shake'); $('search').classList.add('good');
+        setTimeout(() => $('search').classList.remove('good'), 500);
+        this.announce((who === 'me' ? 'Correct: ' : g.ai.name + ' found: ') + a.text);
+        this.renderScore();
+        if (Object.keys(r.revealed).length === 10) { this.endRound('clear'); return; }
+        if (who === 'ai') this.setTurn('ai');
+        else this.renderHint();
+        return;
+      }
+      if (m.dupe) {
+        Sound.dupe();
+        fb.textContent = '“' + m.dupe.text + '” is already on the board.';
+        fb.className = 'feedback';
+        if (who === 'ai') this.setTurn('ai');
+        return;
+      }
+      // miss
+      Sound.miss();
+      const s = $('search');
+      s.classList.remove('shake'); void s.offsetWidth; s.classList.add('shake');
+      fb.textContent = '“' + text + '” is not in the top 10.';
+      fb.className = 'feedback bad';
+      this.announce('Not on the board');
+      if (who === 'me') g.streak = 0;
+      if (g.mode === 'speed') return;
+      if (g.mode === 'versus') {
+        const side = g[who], other = who === 'me' ? 'ai' : 'me';
+        side.x++;
+        if (who === 'ai') $('vs-ai-say').textContent = AF.AI_LINES.miss[Math.floor(Math.random() * AF.AI_LINES.miss.length)];
+        this.renderStrikes();
+        if (g[other].x < g.M.strikes) this.setTurn(other);
+        else if (side.x < g.M.strikes) this.setTurn(who);
+        else this.endRound('strikes');
+        return;
+      }
+      r.strikes++;
+      this.renderStrikes();
+      if (r.strikes >= g.M.strikes) this.endRound('strikes');
+    },
+
+    flip(rank, who, pts) {
+      const el = $('board').querySelector(`.slot[data-r="${rank}"]`);
+      if (!el) return;
+      el.querySelector('.back .p').textContent = pts ? fmt(pts) : '';
+      el.classList.add('flip');
+      if (who === 'ai') el.classList.add('by-ai');
+      if (who === 'miss') el.classList.add('missed');
+      else {
+        el.classList.add('pop');
+        const b = el.getBoundingClientRect();
+        const f = document.createElement('div');
+        f.className = 'floater';
+        f.textContent = '+' + fmt(pts);
+        if (who === 'ai') f.style.color = 'var(--brand2)';
+        f.style.left = (b.left + b.width / 2) + 'px'; f.style.top = (b.top - 6) + 'px';
+        document.body.appendChild(f);
+        setTimeout(() => f.remove(), 1200);
+        if (rank === 0 && who === 'me') Confetti.burst(40, b.left + b.width / 2, b.top);
+      }
+    },
+
+    async endRound(why) {
+      const g = this.g, r = g.round;
+      if (r.over) return;
+      r.over = true;
+      this.setTurn(g.turn);
+      $('actions').classList.add('hidden');
+      const tok = this.token;
+      const all = Object.keys(r.revealed).length === 10;
+      g.rounds.push({ q: r.q, found: Object.keys(r.by).filter(k => r.by[k] === 'me').map(Number), ai: Object.keys(r.by).filter(k => r.by[k] === 'ai').map(Number), points: r.points, all });
+      const st = this.p.stats;
+      st.cats[r.q.cat] = (st.cats[r.q.cat] || 0) + 1;
+      if (!this.p.seen.includes(r.q.id)) { this.p.seen.push(r.q.id); if (this.p.seen.length > 50) this.p.seen.shift(); }
+      if (all && r.foundMe === 10) { Sound.clear(); Confetti.burst(140); }
+      if (g.mode === 'versus') { $('vs-me').classList.remove('turn'); $('vs-ai').classList.remove('turn'); }
+      const fb = $('feedback');
+      if (why === 'strikes') { fb.textContent = g.mode === 'versus' ? 'Both sides struck out!' : 'Three strikes! Here is the full list.'; fb.className = 'feedback bad'; }
+      else if (why === 'clear') { fb.textContent = all && r.foundMe === 10 ? 'Perfect board! 🎉' : 'Board cleared!'; fb.className = 'feedback ok'; }
+      else if (why === 'time') { fb.textContent = 'Time!'; fb.className = 'feedback bad'; }
+      else { fb.textContent = 'Here is the full list.'; fb.className = 'feedback'; }
+      // reveal what was missed
+      for (const a of r.q.answers) {
+        if (r.revealed[a.rank]) continue;
+        r.revealed[a.rank] = 'miss';
+        this.flip(a.rank, 'miss', 0);
+        Sound.flip();
+        await wait(g.mode === 'speed' ? 60 : 140);
+        if (tok !== this.token) return;
+      }
+      if (g.mode === 'speed') {
+        if (why === 'time') { await wait(900); if (tok === this.token) this.finish(); }
+        else { await wait(why === 'clear' ? 900 : 650); if (tok === this.token) this.nextRound(); }
+        return;
+      }
+      const last = g.idx + 1 >= g.M.rounds;
+      const mine = g.rounds[g.rounds.length - 1].found.length;
+      $('banner-title').textContent = g.mode === 'versus'
+        ? `You ${fmt(g.me.pts)} – ${fmt(g.ai.pts)} ${g.ai.name}`
+        : `${mine}/10 found · +${fmt(r.points)}`;
+      $('banner-sub').textContent = last ? 'That was the last round.' : 'Round ' + (g.idx + 2) + ' is next.';
+      $('next').textContent = last ? 'See results ▸' : 'Next round ▸';
+      $('banner').classList.remove('hidden');
+      $('next').focus({ preventScroll: true });
+    },
+
+    pass() {
+      const g = this.g;
+      if (!g || g.round.over || g.turn !== 'me') return;
+      if (g.mode === 'versus') { g.me.x = g.M.strikes; this.renderStrikes(); if (g.ai.x < g.M.strikes) this.setTurn('ai'); else this.endRound('pass'); return; }
+      this.endRound('pass');
+    },
+
+    useHint() {
+      const g = this.g;
+      if (!g || g.hints <= 0 || g.round.over || g.turn !== 'me') return;
+      const a = g.round.q.answers.find(x => !g.round.revealed[x.rank] && !g.round.hinted[x.rank]);
+      if (!a) return;
+      g.hints--; g.hintsUsed++;
+      g.round.hinted[a.rank] = true;
+      const masked = a.text.split(' ').map(w => w[0] + '•'.repeat(Math.max(0, w.length - 1))).join(' ');
+      const el = $('board').querySelector(`.slot[data-r="${a.rank}"] .front`);
+      el.querySelector('.t').innerHTML = `<span class="hint">${esc(masked)}</span>`;
+      el.querySelector('.p').textContent = fmt(a.points / 2);
+      Sound.hint();
+      $('feedback').textContent = 'Hint: answer #' + (a.rank + 1) + ' is now worth half.';
+      $('feedback').className = 'feedback';
+      this.renderHint();
+      $('guess').focus({ preventScroll: true });
+    },
+
+    renderHint() {
+      const g = this.g;
+      $('hint-n').textContent = '(' + g.hints + ')';
+      $('hint').disabled = g.hints <= 0 || g.round.over || g.turn !== 'me';
+    },
+    renderStrikes() {
+      const g = this.g;
+      if (g.mode === 'versus') {
+        $('vs-me-x').textContent = '✕'.repeat(g.me.x);
+        $('vs-ai-x').textContent = '✕'.repeat(g.ai.x);
+        return;
+      }
+      const n = g.round ? g.round.strikes : 0;
+      $('strikes').innerHTML = Array.from({ length: g.M.strikes }, (_, i) => `<span class="strike${i < n ? ' on' : ''}">✕</span>`).join('');
+    },
+    renderScore() {
+      const g = this.g;
+      $('g-score').textContent = fmt(g.score);
+      $('vs-me-pts').textContent = fmt(g.me.pts);
+      $('vs-ai-pts').textContent = fmt(g.ai.pts);
+    },
+
+    /* ---------- results ---------- */
+    finish() {
+      const g = this.g, p = this.p, st = p.stats;
+      g.over = true; g.inResults = true;
+      const score = g.mode === 'versus' ? g.me.pts : g.score;
+      const lvlBefore = AF.levelOf(p.xp);
+      let xp = Math.round(score / 100);
+      let outcome = '';
+      if (g.mode === 'versus') {
+        if (g.me.pts > g.ai.pts) { outcome = 'win'; st.wins++; xp += 100; }
+        else if (g.me.pts < g.ai.pts) { outcome = 'lose'; st.losses++; }
+        else outcome = 'draw';
+      }
+      if (g.practice) xp = Math.round(xp / 4);
+      p.xp += xp;
+      st.games++;
+      st.rounds += g.rounds.length;
+      st.found += g.found;
+      st.perfect += g.rounds.filter(r => r.found.length === 10).length;
+      st.tops += g.rounds.filter(r => r.found.includes(0)).length;
+      st.deep += g.rounds.filter(r => r.found.includes(9)).length;
+      st.bestRun = Math.max(st.bestRun, g.maxStreak);
+      const prevBest = st.best[g.mode] || 0;
+      if (!g.practice) st.best[g.mode] = Math.max(prevBest, score);
+      if (g.mode === 'speed') st.speedBest = Math.max(st.speedBest, g.found);
+      if (g.mode === 'daily' && !g.practice) {
+        const d = p.daily, y = new Date(); y.setDate(y.getDate() - 1);
+        const yk = y.getFullYear() + '-' + String(y.getMonth() + 1).padStart(2, '0') + '-' + String(y.getDate()).padStart(2, '0');
+        d.streak = d.last === yk ? d.streak + 1 : 1;
+        d.last = g.daily;
+        d.history[g.daily] = { score, rounds: g.rounds.map(r => r.found) };
+      }
+      // achievements
+      const got = [];
+      const award = (id, cond) => { if (cond && !p.ach[id]) { p.ach[id] = Date.now(); got.push(AF.ACHIEVEMENTS.find(a => a.id === id)); } };
+      award('first', true);
+      award('perfect', g.rounds.some(r => r.found.length === 10));
+      award('streak5', g.maxStreak >= 5);
+      award('mind', g.mode !== 'speed' && g.rounds.length >= 5 && g.rounds.every(r => r.found.includes(0)));
+      award('deep', st.deep >= 10);
+      award('k50', g.mode === 'classic' && score >= 50000);
+      award('nohint', g.mode === 'classic' && g.hintsUsed === 0 && score >= 30000);
+      award('rival', outcome === 'win');
+      award('buster', outcome === 'win' && g.ai.level === 'hard');
+      award('speed20', g.mode === 'speed' && g.found >= 20);
+      award('daily3', p.daily.streak >= 3);
+      award('explorer', AF.CATEGORIES.every(c => st.cats[c.id]));
+      this.save();
+      this.renderProfile();
+      this.refreshDaily();
+
+      const lvl = AF.levelOf(p.xp), a = AF.xpFor(lvl), b = AF.xpFor(lvl + 1);
+      const title = g.mode === 'versus' ? (outcome === 'win' ? 'You win! 🏆' : outcome === 'lose' ? g.ai.name + ' wins' : 'It\'s a draw!')
+        : g.mode === 'speed' ? 'Time\'s up!' : g.mode === 'daily' ? 'Daily complete!' : 'Game over';
+      const newBest = !g.practice && score > prevBest && prevBest > 0;
+      if (outcome === 'lose') Sound.lose(); else { Sound.win(); Confetti.burst(outcome === 'win' || newBest ? 180 : 90); }
+      const rounds = g.rounds.slice(0, g.mode === 'speed' ? 8 : 5).map(r => `<div><span>${esc(r.q.query)}…</span><span>${r.found.length}/10${g.mode === 'versus' ? ' · AI ' + r.ai.length : ''}</span></div>`).join('');
+      this.showModal(`
+        <div class="result-head">
+          <h2>${title}</h2>
+          <div class="big-score">${fmt(score)}</div>
+          <div class="sub">${g.mode === 'versus' ? 'vs ' + esc(g.ai.name) + ' ' + fmt(g.ai.pts) + ' · ' : ''}${newBest ? '🎉 New personal best! · ' : ''}${g.practice ? 'Practice run · ' : ''}${MODES[g.mode].name}</div>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><b>${g.found}</b><span>Found</span></div>
+          <div class="kpi"><b>${g.rounds.filter(r => r.found.includes(0)).length}</b><span>#1 hits</span></div>
+          <div class="kpi"><b>${g.maxStreak}</b><span>Best run</span></div>
+          <div class="kpi"><b>+${xp}</b><span>XP</span></div>
+        </div>
+        <div class="levelup"><b>Lv ${lvl}</b><span class="xpbar"><i style="width:${Math.round((p.xp - a) / (b - a) * 100)}%"></i></span><b>${lvl > lvlBefore ? '⬆ Level up!' : AF.titleOf(lvl)}</b></div>
+        ${got.length ? '<div class="ach-new">' + got.map(x => `<div>${x.icon} Achievement unlocked: ${x.name}</div>`).join('') + '</div>' : ''}
+        <h3>Rounds</h3><div class="round-list">${rounds}</div>
+        <div class="row-btns">
+          ${g.mode === 'daily' ? '<button class="btn hot" id="share">📋 Share result</button>' : ''}
+          <button class="btn primary" id="again">Play again</button>
+          <button class="btn ghost" id="home-btn">Menu</button>
+        </div>`, () => this.toHome());
+      $('again').onclick = () => { this.closeModal(true); this.start(); };
+      $('home-btn').onclick = () => this.closeModal();
+      if ($('share')) $('share').onclick = () => this.share(score);
+    },
+
+    share(score) {
+      const g = this.g;
+      const lines = g.rounds.map(r => Array.from({ length: 10 }, (_, i) => r.found.includes(i) ? '🟪' : '⬜').join(''));
+      const text = `Autofeud Daily ${g.daily}\n🔎 ${fmt(score)} pts\n${lines.join('\n')}` + (/^https?:/.test(location.href) ? '\n' + location.href.split('#')[0] : '');
+      const done = () => this.toast('Copied! Paste it anywhere.');
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => this.copyFallback(text, done));
+      else this.copyFallback(text, done);
+    },
+    copyFallback(text, done) {
+      const t = document.createElement('textarea');
+      t.value = text; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); done(); } catch (e) { this.toast('Could not copy'); }
+      t.remove();
+    },
+
+    toHome() {
+      this.token++;
+      this.g = null;
+      $('game').classList.add('hidden');
+      $('home').classList.remove('hidden');
+      $('mini-logo').classList.add('hidden');
+      this.renderSetup();
+      scrollTo(0, 0);
+    },
+
+    confirmQuit() {
+      const g = this.g;
+      if (!g || g.over) { this.toHome(); return; }
+      this.showModal(`<h2>Leave this game?</h2><p>Your score for this game will not be saved.</p>
+        <div class="row-btns"><button class="btn primary" id="stay">Keep playing</button><button class="btn ghost" id="leave">Leave</button></div>`);
+      $('stay').onclick = () => this.closeModal();
+      $('leave').onclick = () => { this.closeModal(true); this.toHome(); };
+    },
+
+    /* ---------- modals ---------- */
+    showModal(html, onClose) {
+      $('modal-body').innerHTML = html;
+      $('modal').classList.remove('hidden');
+      this.onClose = onClose || null;
+      const f = $('modal').querySelector('.row-btns .btn, input');
+      if (f) setTimeout(() => f.focus({ preventScroll: true }), 50);
+    },
+    closeModal(silent) {
+      $('modal').classList.add('hidden');
+      const cb = this.onClose; this.onClose = null;
+      if (cb && !silent) cb();
+      if (this.g && !this.g.over && this.g.turn === 'me' && !this.g.round.over) $('guess').focus({ preventScroll: true });
+    },
+    open(which) {
+      if (which === 'help') this.showModal(`
+        <h2>How to play</h2>
+        <p>A search is cut off, like <b>why do cats …</b>. Guess the 10 most popular ways to finish it.</p>
+        <ul>
+          <li>Type only what comes next: <b>purr</b> counts for “why do cats purr”.</li>
+          <li>Small typos and plurals are fine. One key word is enough.</li>
+          <li>Answer #1 is worth 10,000 points, #10 is worth 1,000.</li>
+          <li>A wrong guess is a strike. Three strikes end the round.</li>
+          <li>💡 Hints show the first letters of the best hidden answer, which then scores half.</li>
+        </ul>
+        <h3>Modes</h3>
+        <ul>
+          <li><b>Classic</b>: 5 searches from the category you pick.</li>
+          <li><b>Daily Challenge</b>: everyone gets the same 5 searches today. Share your result.</li>
+          <li><b>Versus AI</b>: take turns. A hit keeps your turn, a miss passes it. Three misses and you are out for the round.</li>
+          <li><b>Speed Rush</b>: 60 seconds, no strikes, every hit adds 3 seconds.</li>
+        </ul>
+        <p>All searches are written for this game and kept school friendly.</p>`);
+      else if (which === 'stats') {
+        const p = this.p, s = p.stats, lvl = AF.levelOf(p.xp);
+        this.showModal(`
+          <h2>Stats</h2>
+          <div class="levelup"><b>Lv ${lvl} · ${AF.titleOf(lvl)}</b><span class="xpbar"><i style="width:${Math.round((p.xp - AF.xpFor(lvl)) / (AF.xpFor(lvl + 1) - AF.xpFor(lvl)) * 100)}%"></i></span><b>${fmt(p.xp)} XP</b></div>
+          <div class="kpis">
+            <div class="kpi"><b>${s.games}</b><span>Games</span></div>
+            <div class="kpi"><b>${fmt(s.found)}</b><span>Found</span></div>
+            <div class="kpi"><b>${s.perfect}</b><span>Perfect</span></div>
+            <div class="kpi"><b>${s.wins}–${s.losses}</b><span>vs AI</span></div>
+            <div class="kpi"><b>${fmt(s.best.classic)}</b><span>Best classic</span></div>
+            <div class="kpi"><b>${fmt(s.best.daily)}</b><span>Best daily</span></div>
+            <div class="kpi"><b>${s.speedBest}</b><span>Best rush</span></div>
+            <div class="kpi"><b>${p.daily.streak}</b><span>Daily streak</span></div>
+          </div>
+          <h3>Achievements · ${Object.keys(p.ach).length}/${AF.ACHIEVEMENTS.length}</h3>
+          <div class="ach-grid">${AF.ACHIEVEMENTS.map(a => `<div class="ach${p.ach[a.id] ? ' got' : ''}"><span class="i">${a.icon}</span><span><b>${a.name}</b><small>${a.desc}</small></span></div>`).join('')}</div>`);
+      } else if (which === 'settings') {
+        const s = this.p.settings;
+        this.showModal(`
+          <h2>Settings</h2>
+          <div class="set" style="display:block"><div style="margin-bottom:8px">Your name</div><input id="set-name" class="text-input" maxlength="16" placeholder="Player" value="${esc(this.p.name)}"></div>
+          <div class="set">Sound<button class="switch${s.sound ? ' on' : ''}" id="set-sound" aria-label="Sound"></button></div>
+          <div class="set">Animations<button class="switch${s.motion ? ' on' : ''}" id="set-motion" aria-label="Animations"></button></div>
+          <div class="set">Theme<div class="seg" id="set-theme">${['auto', 'light', 'dark'].map(t => `<button data-t="${t}" class="${s.theme === t ? 'sel' : ''}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div></div>
+          <div class="set">Progress<button class="btn ghost" id="set-reset">Reset all progress</button></div>`);
+        $('set-name').addEventListener('input', e => { this.p.name = e.target.value.trim().slice(0, 16); this.save(); this.renderProfile(); });
+        $('set-sound').onclick = e => { s.sound = !s.sound; Sound.on = s.sound; e.currentTarget.classList.toggle('on', s.sound); this.save(); };
+        $('set-motion').onclick = e => { s.motion = !s.motion; e.currentTarget.classList.toggle('on', s.motion); this.applyTheme(); this.save(); };
+        $('set-theme').onclick = e => { const b = e.target.closest('button'); if (!b) return; s.theme = b.dataset.t; this.applyTheme(); this.save(); $('set-theme').querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b)); };
+        let armed = false;
+        $('set-reset').onclick = e => {
+          if (!armed) { armed = true; e.currentTarget.textContent = 'Tap again to confirm'; return; }
+          this.p = AF.Store.reset(); this.save(); this.applyTheme(); Sound.on = true; this.renderProfile(); this.refreshDaily(); this.renderSetup(); this.closeModal(); this.toast('Progress reset');
+        };
+      }
+    },
+
+    toast(msg) {
+      const t = document.createElement('div');
+      t.className = 'toast'; t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2200);
+    },
+    announce(msg) { $('announce').textContent = msg; }
+  };
+
+  AF.App = App;
+  AF.Sound = Sound;
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => App.boot());
+  else App.boot();
+})(window.AF = window.AF || {});
+</script>
+</body>
+</html>

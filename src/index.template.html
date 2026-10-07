@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Autofeud — Guess the search</title>
+  <meta name="description" content="Guess how the internet finishes the search. Classic, Daily Challenge, Versus AI and Speed Rush. Free, no sign-up, works offline.">
+  <meta name="theme-color" content="#7c5cff">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%237c5cff'/%3E%3Ccircle cx='28' cy='28' r='13' fill='none' stroke='white' stroke-width='6'/%3E%3Cpath d='M38 38l12 12' stroke='%23ff8a1f' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
+  <!-- Only external host: jsDelivr (the font falls back to system fonts if blocked) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/outfit@5/500.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/outfit@5/700.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/outfit@5/800.css" media="print" onload="this.media='all'">
+  <!--CSS-->
+</head>
+<body>
+  <header class="topbar">
+    <h1 id="mini-logo" class="logo small hidden" aria-label="Autofeud"><span>a</span><span>u</span><span>t</span><span>o</span><span>f</span><span>e</span><span>u</span><span>d</span></h1>
+    <button id="profile" class="profile" aria-label="Your profile">
+      <span id="avatar" class="avatar">P</span>
+      <span><b id="p-name">Player</b><small id="p-level">Lv 1 · Newbie</small><span class="xpbar"><i id="p-xp" style="width:0"></i></span></span>
+    </button>
+    <div class="grow"></div>
+    <button class="icon-btn" data-open="stats" aria-label="Stats and achievements" title="Stats & achievements">🏆</button>
+    <button class="icon-btn" data-open="help" aria-label="How to play" title="How to play">❔</button>
+    <button class="icon-btn" data-open="settings" aria-label="Settings" title="Settings">⚙️</button>
+  </header>
+
+  <!-- ============ HOME ============ -->
+  <main id="home" class="screen">
+    <section class="hero">
+      <h1 class="logo huge" aria-label="Autofeud"><span>a</span><span>u</span><span>t</span><span>o</span><span>f</span><span>e</span><span>u</span><span>d</span></h1>
+      <p class="tagline">How does the internet finish the search? Guess the top 10.</p>
+      <div class="demo-search" aria-hidden="true"><span>🔍</span><span class="q" id="demo-q"></span></div>
+      <div class="demo-drop" id="demo-drop" aria-hidden="true"></div>
+    </section>
+
+    <div class="section-title">Choose a mode</div>
+    <div class="modes" id="modes">
+      <button class="mode sel" data-mode="classic"><span class="ic" style="background:rgba(124,92,255,.14)">🔎</span><b>Classic</b><span>5 searches, 3 strikes each. Pick a category and go.</span></button>
+      <button class="mode" data-mode="daily"><span class="badge" id="daily-badge">NEW</span><span class="ic" style="background:rgba(255,138,31,.14)">📅</span><b>Daily Challenge</b><span>Same 5 searches for everyone today. Share your score.</span></button>
+      <button class="mode" data-mode="versus"><span class="ic" style="background:rgba(255,79,154,.14)">🤖</span><b>Versus AI</b><span>Take turns against a humanlike AI rival. Best of 5.</span></button>
+      <button class="mode" data-mode="speed"><span class="ic" style="background:rgba(22,180,122,.14)">⚡</span><b>Speed Rush</b><span>60 seconds. No strikes. Every hit adds time.</span></button>
+    </div>
+
+    <section class="setup" id="setup">
+      <div id="cat-wrap">
+        <div class="setup-row"><span class="lbl">Category</span></div>
+        <div class="chips" id="cats" style="margin-top:8px"></div>
+      </div>
+      <div id="ai-wrap" class="setup-row hidden">
+        <span class="lbl">AI rival</span>
+        <div class="seg" id="ai-levels"></div>
+      </div>
+      <div class="setup-row">
+        <span id="setup-note" class="lbl"></span>
+        <button id="start" class="btn primary big">Play ▸</button>
+      </div>
+    </section>
+    <p class="foot">Free · No sign-up · Works offline · All searches are written for the game and school friendly</p>
+  </main>
+
+  <!-- ============ GAME ============ -->
+  <main id="game" class="screen hidden">
+    <div class="gamebar">
+      <button id="quit" class="icon-btn" aria-label="Quit to menu" title="Quit">✕</button>
+      <div class="round-info"><span class="cat" id="g-cat"></span><div class="rn" id="g-round"></div></div>
+      <div class="scorebox" id="g-scorebox"><small>Score</small><b id="g-score">0</b></div>
+    </div>
+
+    <div class="versus hidden" id="versus">
+      <div class="vs-card" id="vs-me"><span class="avatar" id="vs-me-av">P</span><span class="who"><b id="vs-me-name">You</b><span class="x" id="vs-me-x"></span></span><span class="pts" id="vs-me-pts">0</span></div>
+      <span class="vs-mid">VS</span>
+      <div class="vs-card ai" id="vs-ai"><span class="avatar" id="vs-ai-av" style="background:linear-gradient(135deg,#ff7a45,#ff4f9a)">🤖</span><span class="who"><b id="vs-ai-name">Nova</b><span class="ai-bubble" id="vs-ai-say"></span><span class="x" id="vs-ai-x"></span></span><span class="pts" id="vs-ai-pts">0</span></div>
+    </div>
+
+    <form class="search" id="search" autocomplete="off">
+      <span class="mag">🔍</span>
+      <label for="guess"><span class="qtext" id="g-query"></span><input id="guess" type="text" enterkeyhint="search" autocapitalize="off" spellcheck="false" maxlength="40" placeholder="…"></label>
+      <button class="btn primary" id="go" type="submit"><span>🔍</span><span class="lbl">Search</span></button>
+    </form>
+
+    <div class="status">
+      <div class="strikes" id="strikes" aria-label="Strikes"></div>
+      <div class="timer hidden" id="timer">60</div>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+
+    <div class="board" id="board"></div>
+
+    <div class="actions" id="actions">
+      <button class="btn" id="hint">💡 Hint <span id="hint-n"></span></button>
+      <button class="btn ghost" id="pass">Give up</button>
+    </div>
+    <div class="round-banner hidden" id="banner">
+      <div><b id="banner-title"></b><br><span id="banner-sub"></span></div>
+      <button class="btn primary" id="next">Next ▸</button>
+    </div>
+  </main>
+
+  <!-- ============ MODAL ============ -->
+  <div class="modal hidden" id="modal" role="dialog" aria-modal="true">
+    <div class="sheet"><button class="close" aria-label="Close">✕</button><div id="modal-body"></div></div>
+  </div>
+
+  <canvas id="confetti"></canvas>
+  <div class="sr" id="announce" aria-live="assertive"></div>
+  <noscript><p style="text-align:center;padding:40px">Autofeud needs JavaScript.</p></noscript>
+  <!--JS-->
+</body>
+</html>
