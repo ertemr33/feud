@@ -4,7 +4,7 @@
    - standalone.html  everything inlined in one file (no CDN needed) */
 'use strict';
 const fs = require('fs'), path = require('path');
-const CDN = 'https://cdn.jsdelivr.net/gh/ertemr33/feud@main/';
+const CDN = 'https://cdn.jsdelivr.net/gh/ertemr33/feud@1f51390/';
 const JS = ['data.js', 'engine.js', 'app.js'];
 const src = f => fs.readFileSync(path.join(__dirname, 'src', f), 'utf8');
 const out = (f, s) => { fs.mkdirSync(path.dirname(path.join(__dirname, f)), { recursive: true }); fs.writeFileSync(path.join(__dirname, f), s); };
